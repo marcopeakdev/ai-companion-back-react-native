@@ -35,14 +35,25 @@ const getGoal = async (req: Request, res: Response) => {
   res.status(200).send(goals);
 };
 
-const setGoal = (req: Request, res: Response) => {
+const setGoal = async (req: Request, res: Response) => {
   const { domain, content, userId } = req.body;
   const goalRow = new Goal({
     user_id: userId,
     content,
     domain_id: domain,
   });
-  goalRow.save();
+  
+  const goal = await goalRow.save();
+
+  const goals = await Goal.find({ user_id: userId });
+  if (goals.length === 0) {
+    await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        goal_id: goal._id,
+      }
+    );
+  }
   res.status(200).send({ message: "goal saving success!" });
 };
 

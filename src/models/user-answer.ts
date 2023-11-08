@@ -6,7 +6,7 @@ const userAnswerSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',
   },
-  user_questioin_id: {
+  user_question_id: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User_questin',
   },

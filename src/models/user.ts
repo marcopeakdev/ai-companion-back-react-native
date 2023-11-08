@@ -55,11 +55,15 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Children",
   },
-  user_question_id: {
+  user_question_id: {       // user_question_id to ask a question about user everyday or weekly so this field is changed everyday or weekly
     type: Schema.Types.ObjectId,
     ref: "User_question",
   },
-  goal_question_id: {
+  goal_id: {      // goal_id to ask a question about goal everyday or weekly so this field is updated if question of this goal is ended 
+    type: Schema.Types.ObjectId,
+    ref: "Goal",
+  },
+  goal_question_id: {      // goal_question_id to ask a question about goal everyday or weekly so this field is changed everyday or weekly
     type: Schema.Types.ObjectId,
     ref: "Goal_question",
   },
