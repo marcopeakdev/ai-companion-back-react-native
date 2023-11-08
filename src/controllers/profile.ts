@@ -44,9 +44,9 @@ const setGoal = async (req: Request, res: Response) => {
   });
   
   const goal = await goalRow.save();
-
   const goals = await Goal.find({ user_id: userId });
-  if (goals.length === 0) {
+
+  if (goals.length === 1) {
     await User.findOneAndUpdate(
       { _id: userId },
       {

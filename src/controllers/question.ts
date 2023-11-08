@@ -11,6 +11,7 @@ const getQestionsandTips = async (req: Request, res: Response) => {
   const userId = req.body.userId;
   const questions = await User.findById(userId)
     .populate("user_question_id")
+    .populate("goal_id")
     .populate("goal_question_id")
     .exec();
 
@@ -92,7 +93,7 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
     // question of first item is displayed
     newGoalQuestionId = goalQuestionIds[0]._id;
     //also we have to chage goal_id in user collections in order to display the question of the another goal
-    const goalIds = await Goal.find({}).select("_id");
+    const goalIds = await Goal.find({ user_id: userId }).select("_id");
     let newGoalId: any = "";
     const goalIdsLength = goalIds.length;
     const currentGoalId = questions?.goal_id?.toString();
@@ -100,6 +101,10 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
       currentGoalId === //when current goal is last item in goal collection
       goalIds[goalIdsLength - 1]._id.toString()
     ) {
+      console.log(
+        "newGoalQuestionId",
+        newGoalQuestionId,
+      );
       // goal of first item is displayed
       newGoalId = goalIds[0]._id;
     } else {
@@ -113,8 +118,7 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
     }
     await User.findOneAndUpdate(
       { _id: userId },
-      { goal_id: newGoalId },
-      { goal_question_id: newGoalQuestionId }
+      { goal_id: newGoalId, goal_question_id: newGoalQuestionId }
     );
   } else {
     //when current question is not last item in user question collection
