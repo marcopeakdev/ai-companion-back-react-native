@@ -7,5 +7,6 @@ const router = express.Router();
 router.get("/questions", authMiddleware.ensureLogin, questionController.getQestionsandTips);
 router.post("/user-question-answer", authMiddleware.ensureLogin, questionController.saveUserAnswer);
 router.post("/goal-question-answer", authMiddleware.ensureLogin, questionController.saveGoalAnswer);
+router.patch("/question-date", authMiddleware.ensureLogin, questionController.updateQuestionDisplayDate);
 
 export default router;  

@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
 import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
 import Goal from "../models/goal";
@@ -15,7 +14,36 @@ const getQestionsandTips = async (req: Request, res: Response) => {
     .populate("goal_question_id")
     .exec();
 
-  res.status(200).send(questions);
+  const today = new Date();
+  const todayDate = today.getDate();
+  const todayDay = today.getDay();
+  const questionDisplayDate = questions?.question_display_date.getDate()
+    ? questions?.question_display_date.getDate()
+    : 0;
+  switch (questions?.question_display_interval) {
+    case 0: // 0: A day
+      if (questionDisplayDate * 1 <= 1 + todayDate) {
+        return res.status(200).send(questions);
+      }
+      res.status(200).send({ message: "no" });
+      break;
+    case 1: // 1 : A week:
+      if (todayDay * 1 === 1) {
+        //display questions per Monday
+        return res.status(200).send(questions);
+      }
+      res.status(200).send({ message: "no" });
+      break;
+
+    default: // 2: A month
+      if (todayDate * 1 === 1) {
+        // display questions per  first day of every month
+        //display questions per Monday
+        return res.status(200).send(questions);
+      }
+      res.status(200).send({ message: "no" });
+      break;
+  }
 };
 
 const saveUserAnswer = async (req: Request, res: Response) => {
@@ -81,7 +109,6 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
     .exec();
 
   //operation to add new goal question collection id in user collection
-
   const goalQuestionIds = await GoalQuestion.find({}).select("_id");
   let newGoalQuestionId: any = "";
   const goalQuestionIdsLength = goalQuestionIds.length;
@@ -101,10 +128,6 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
       currentGoalId === //when current goal is last item in goal collection
       goalIds[goalIdsLength - 1]._id.toString()
     ) {
-      console.log(
-        "newGoalQuestionId",
-        newGoalQuestionId,
-      );
       // goal of first item is displayed
       newGoalId = goalIds[0]._id;
     } else {
@@ -136,8 +159,25 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
   res.status(200).send({ message: "goal answer is saved successfully!" });
 };
 
+const updateQuestionDisplayDate = async (req: Request, res: Response) => {
+  const userId = req.body.userId;
+  console.log("userId", userId);
+  // when the question is displayed every day, update questiondisplaydate
+  const newQuestionDisplayDate = new Date(
+    +new Date() + (2 * 24 + 1) * 60 * 60 * 1000
+  );
+  await User.findOneAndUpdate(
+    { _id: userId },
+    {
+      question_display_date: newQuestionDisplayDate,
+    }
+  );
+  res.status(200).send({ message: "date update success!" });
+};
+
 export default {
   getQestionsandTips,
   saveUserAnswer,
   saveGoalAnswer,
+  updateQuestionDisplayDate,
 };

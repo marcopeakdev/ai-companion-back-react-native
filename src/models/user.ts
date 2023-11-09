@@ -46,10 +46,18 @@ const userSchema = new Schema({
     required: true,
     default: 0
   },
+  question_display_date: {
+		type: Date,
+		default: new Date(+new Date() + (24 + 1)*60*60*1000),
+	},
   tip_display_interval: {  // 0: A day, 1 : A week:, 2: A month 
     type: Number,
     required: true,
     default: 0
+  },
+  tip_display_date: {
+    type: Date,
+    default: +new Date() + (24 + 1)*60*60*1000,
   },
   children: {
     type: Schema.Types.ObjectId,

@@ -8,7 +8,7 @@ const setQuestionInterval = async (req: Request, res: Response) => {
   const user = await User.findOne({ email });
 
   if (!user) return res.status(400).send({ message: "User does not exist" });
-  user.question_display_interval = questionDisplayInterval;
+  user.question_display_interval = questionDisplayInterval * 1;
   user.save();
   res.status(200).send({ message: "Update success" });
 };
@@ -18,7 +18,7 @@ const setTipInterval = async (req: Request, res: Response) => {
   const user = await User.findOne({ email });
 
   if (!user) return res.status(400).send({ message: "User does not exist" });
-  user.tip_display_interval = tipDisplayInterval;
+  user.tip_display_interval = tipDisplayInterval * 1;
   user.save();
   res.status(200).send({ message: "Update success" });
 };
@@ -58,7 +58,6 @@ const setGoal = async (req: Request, res: Response) => {
 };
 
 const deleteGoal = async (req: Request, res: Response) => {
-  console.log("id", req.query.id);
   await Goal.deleteOne({ _id: req.query.id });
   res.status(200).send({ message: "deleting success!" });
 };
