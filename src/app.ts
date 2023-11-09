@@ -44,7 +44,10 @@ app.use("/api/question", question);
 app.use(middlewares.errorHandler);
 app.use(middlewares.notFound);
 //mongodb connection
-const uri = process.env.ATLAS_URI;
+
+// const uri = process.env.ATLAS_URI;
+const uri = "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority"
+
 if (uri) {
   mongoose.connect(uri);
 } else {

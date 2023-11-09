@@ -5,7 +5,8 @@ import { Request, Response, NextFunction } from "express";
 const ensureLogin = (req: Request, res: Response, next: NextFunction) => {
   console.log('auth', req.headers.authorization);
   const userId = req.headers.authorization as string;
-  const secret = process.env.JWT_SECRET as string;
+  // const secret = process.env.JWT_SECRET as string;
+  const secret = "abc123";
   jwt.verify(JSON.parse(userId), secret, async (err: any, decodedId: any) => {
     console.log("decodedId", decodedId);
     if (!decodedId) {

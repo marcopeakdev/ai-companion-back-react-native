@@ -7,7 +7,9 @@ import UserQestion from "./models/user-question";
 import GoalQestion from "./models/goal-question";
 import Domain from "./models/domain";
 
-const uri = process.env.ATLAS_URI;
+// const uri = process.env.ATLAS_URI;
+const uri = "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority"
+
 const connectDB = async () => {
   if (uri) {
     await mongoose.connect(uri);
