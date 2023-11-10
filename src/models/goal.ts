@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const goalSchema = new Schema({
+interface IGoal {
+  user_id: mongoose.Schema.Types.ObjectId,
+  domain_id: mongoose.Schema.Types.ObjectId,
+  content: String,
+  progress: Number,
+}
+
+const goalSchema = new Schema<IGoal>({
   user_id: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',
@@ -20,4 +27,4 @@ const goalSchema = new Schema({
   }
 });
 
-export default mongoose.model("Goal", goalSchema);
+export default mongoose.model<IGoal>("Goal", goalSchema);

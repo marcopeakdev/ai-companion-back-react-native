@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const childrenSchema = new Schema({
+interface IChildren {
+  name: String,
+  age: Number,
+  gender: Number,
+
+}
+
+const childrenSchema = new Schema<IChildren>({
   name: {
     type: String,
     required: true,
@@ -19,4 +26,4 @@ const childrenSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("Children", childrenSchema);
+module.exports = mongoose.model<IChildren>("Children", childrenSchema);

@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const userAnswerSchema = new Schema({
+interface IUserAnswer {
+  user_id: mongoose.Schema.Types.ObjectId,
+  user_question_id: mongoose.Schema.Types.ObjectId,
+  content: String,
+}
+
+const userAnswerSchema = new Schema<IUserAnswer>({
   user_id: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',
@@ -16,4 +22,4 @@ const userAnswerSchema = new Schema({
   }
 });
 
-export default mongoose.model("User_answer", userAnswerSchema);
+export default mongoose.model<IUserAnswer>("User_answer", userAnswerSchema);

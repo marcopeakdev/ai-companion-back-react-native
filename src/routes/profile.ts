@@ -9,6 +9,8 @@ router.post("/set-tip-interval", authMiddleware.ensureLogin, profileController.s
 router.get("/domain", authMiddleware.ensureLogin, profileController.getDomain);
 router.get("/goal", authMiddleware.ensureLogin, profileController.getGoal);
 router.post("/set-goal", authMiddleware.ensureLogin, profileController.setGoal);
+router.post("/goal-progress", authMiddleware.ensureLogin, profileController.saveGoalProgress);
 router.delete("/goal", authMiddleware.ensureLogin, profileController.deleteGoal);
+router.get("/progress", authMiddleware.ensureLogin, profileController.getProgress);
 
 export default router;  

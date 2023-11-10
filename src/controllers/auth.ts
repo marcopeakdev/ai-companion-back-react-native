@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Request, Response } from "express";
 import User from "../models/user";
 import UserQuestion from "../models/user-question";
 import GoalQuestion from "../models/goal-question";
-import { Request, Response } from "express";
+import { getJwtSecret } from "../util";
 
 const signup = async (req: Request, res: Response) => {
   console.log("signup", req.body);
@@ -100,14 +101,14 @@ const signin = async (req: Request, res: Response) => {
     tip_display_interval,
   } = user;
   // In jwt.sign set the data that you want to get
-  const jwtsecret = process.env.JWT_SECRET;
+  // const jwtsecret = process.env.JWT_SECRET;
+  const jwtsecret = getJwtSecret();
   if (!jwtsecret) {
     console.log("jwtsecret is empty");
     return;
   }
 
   const token = await jwt.sign({ id }, jwtsecret);
-
   res.status(200).send({
     message: "login success",
     token,
@@ -127,13 +128,14 @@ const signin = async (req: Request, res: Response) => {
 };
 
 const getUser = (req: Request, res: Response) => {
-  const userId = req.query.id as string;
-  const secret = process.env.JWT_SECRET as string;
+  const token = req.query.token as string;
+  // const secret = process.env.JWT_SECRET as string;
+  const secret = getJwtSecret();
 
-  if (!userId) {
+  if (!token) {
     return res.status(400).send({ message: "UserId is required" });
   }
-  jwt.verify(JSON.parse(userId), secret, async (err: any, decodedId: any) => {
+  jwt.verify(token, secret, async (err: any, decodedId: any) => {
     console.log("decodedId", decodedId);
     const userInfo = await User.findById(decodedId.id);
     if (!userInfo) {

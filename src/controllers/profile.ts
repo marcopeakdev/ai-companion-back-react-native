@@ -42,7 +42,7 @@ const setGoal = async (req: Request, res: Response) => {
     content,
     domain_id: domain,
   });
-  
+
   const goal = await goalRow.save();
   const goals = await Goal.find({ user_id: userId });
 
@@ -57,9 +57,31 @@ const setGoal = async (req: Request, res: Response) => {
   res.status(200).send({ message: "goal saving success!" });
 };
 
+const saveGoalProgress = async (req: Request, res: Response) => {
+  const { goalId, progress } = req.body;
+  await Goal.findOneAndUpdate({ _id: goalId }, { progress });
+  res.status(200).send({ message: "progress updating success!" });
+};
+
 const deleteGoal = async (req: Request, res: Response) => {
   await Goal.deleteOne({ _id: req.query.id });
   res.status(200).send({ message: "deleting success!" });
+};
+
+const getProgress = async (req: Request, res: Response) => {
+  const userId = req.body.userId;
+  const domains = await Domain.find().populate({
+    path: "goals",
+    match: { user_id: userId },
+    select: "progress"
+  }) as any[];
+  const domainLength = domains.length;
+  for(let i=0; i<domainLength; i++) {
+    console.log("content->", domains[i].goals);
+  }
+
+  res.json({ domains });
+  
 };
 
 export default {
@@ -69,4 +91,6 @@ export default {
   setGoal,
   getGoal,
   deleteGoal,
+  saveGoalProgress,
+  getProgress,
 };

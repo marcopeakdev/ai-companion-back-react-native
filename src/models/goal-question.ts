@@ -1,11 +1,15 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const goalQuestionSchema = new Schema({
+interface IGoalQuestionSchema {
+  content: String
+}
+
+const goalQuestionSchema = new Schema<IGoalQuestionSchema>({
   content: {
     type: String,
     required: true,
   }
 });
 
-export default mongoose.model("Goal_question", goalQuestionSchema);
+export default mongoose.model<IGoalQuestionSchema>("Goal_question", goalQuestionSchema);

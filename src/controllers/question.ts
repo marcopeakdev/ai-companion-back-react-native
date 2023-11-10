@@ -23,7 +23,7 @@ const getQestionsandTips = async (req: Request, res: Response) => {
   switch (questions?.question_display_interval) {
     case 0: // 0: A day
       if (questionDisplayDate * 1 <= 1 + todayDate) {
-        return res.status(200).send(questions);
+      return res.status(200).send(questions);
       }
       res.status(200).send({ message: "no" });
       break;
@@ -50,12 +50,26 @@ const saveUserAnswer = async (req: Request, res: Response) => {
   const { userId, isSkipUserAnswer, userAnswer, userQuestionId } = req.body;
 
   if (!isSkipUserAnswer) {
-    const savingUserAnswerRow = {
+    console.log("existUseranswer->", "existUserAnswer");
+    const existUserAnswer = await UserAnswer.find({
       user_id: userId,
       user_question_id: userQuestionId,
-      content: userAnswer,
-    };
-    await UserAnswer.create(savingUserAnswerRow);
+    });
+    console.log("existUseranswer->", existUserAnswer);
+    if (existUserAnswer.length !== 0) {
+      await UserAnswer.findOneAndUpdate(
+        { user_id: userId, user_question_id: userQuestionId },
+        { content: userAnswer }
+      );
+    } else {
+      const savingUserAnswerRow = {
+        user_id: userId,
+        user_question_id: userQuestionId,
+        content: userAnswer,
+      };
+      console.log("savingUserAnswerRow>", savingUserAnswerRow);
+      await UserAnswer.create(savingUserAnswerRow);
+    }
   }
 
   const questions = await User.findById(userId)
@@ -95,12 +109,23 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
     req.body;
 
   if (!isSkipGoalAnswer) {
-    const savingGoalAnswerRow = {
-      goal_id: goalId,
+    const existGoalAnswer = await GoalAnswer.find({
+      user_id: userId,
       goal_question_id: goalQuestionId,
-      content: goalAnswer,
-    };
-    await GoalAnswer.create(savingGoalAnswerRow);
+    });
+    if (existGoalAnswer.length !== 0) {
+      await GoalAnswer.findOneAndUpdate(
+        { user_id: userId, goal_question_id: goalQuestionId },
+        { content: goalAnswer }
+      );
+    } else {
+      const savingGoalAnswerRow = {
+        goal_id: goalId,
+        goal_question_id: goalQuestionId,
+        content: goalAnswer,
+      };
+      await GoalAnswer.create(savingGoalAnswerRow);
+    }
   }
 
   const questions = await User.findById(userId)

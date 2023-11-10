@@ -2,7 +2,29 @@ import mongoose from "mongoose";
 //import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const userSchema = new Schema({
+interface IUser {
+  name: String,
+  email: String,
+  avatar: String,
+  password: string,
+  age: Number,
+  height: Number,
+  weight: Number,
+  gender: Number,
+  marial_status: Number,
+  question_display_interval: Number,
+  question_display_date: Date,
+  tip_display_interval: Number,
+  tip_display_date: Date,
+  children: mongoose.Schema.Types.ObjectId,
+  user_question_id: mongoose.Types.ObjectId,
+  goal_id: mongoose.Schema.Types.ObjectId,
+  goal_question_id: mongoose.Types.ObjectId,
+  tip_id: String,
+  _id: mongoose.Schema.Types.ObjectId
+}
+
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     required: true,
@@ -81,4 +103,4 @@ const userSchema = new Schema({
   },
 });
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model<IUser>("User", userSchema);

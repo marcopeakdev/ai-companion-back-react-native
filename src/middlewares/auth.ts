@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user";
 import { Request, Response, NextFunction } from "express";
+import { getJwtSecret } from "../util";
 
 const ensureLogin = (req: Request, res: Response, next: NextFunction) => {
-  console.log('auth', req.headers.authorization);
-  const userId = req.headers.authorization as string;
+  console.log('authtoken->', req.headers.authorization);
+  const token = req.headers.authorization as string;
   // const secret = process.env.JWT_SECRET as string;
-  const secret = "abc123";
-  jwt.verify(JSON.parse(userId), secret, async (err: any, decodedId: any) => {
-    console.log("decodedId", decodedId);
+  const secret = getJwtSecret();
+  jwt.verify(token, secret, async (err: any, decodedId: any) => {
+    console.log("decodedId->", decodedId);
     if (!decodedId) {
       return res.status(400).send({ message: "You are not login!" });
     }

@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const tipSchema = new Schema({
+interface ITip {
+  user_id: mongoose.Schema.Types.ObjectId,
+  goal_id: mongoose.Schema.Types.ObjectId,
+  content: String,
+}
+
+const tipSchema = new Schema<ITip>({
   user_id: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',
@@ -16,4 +22,4 @@ const tipSchema = new Schema({
   }
 });
 
-export default mongoose.model("Tip", tipSchema);
+export default mongoose.model<ITip>("Tip", tipSchema);
