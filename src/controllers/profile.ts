@@ -2,6 +2,7 @@ import User from "../models/user";
 import Domain from "../models/domain";
 import Goal from "../models/goal";
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 
 const setQuestionInterval = async (req: Request, res: Response) => {
   const { email, questionDisplayInterval } = req.body;
@@ -70,18 +71,27 @@ const deleteGoal = async (req: Request, res: Response) => {
 
 const getProgress = async (req: Request, res: Response) => {
   const userId = req.body.userId;
-  const domains = await Domain.find().populate({
-    path: "goals",
-    match: { user_id: userId },
-    select: "progress"
-  }) as any[];
-  const domainLength = domains.length;
-  for(let i=0; i<domainLength; i++) {
-    console.log("content->", domains[i].goals);
-  }
+  console.log("userId", userId);
+  const domains = await Domain.aggregate([
+    {
+      $lookup: {
+        from: "goals",
+        localField: "_id",
+        foreignField: "domain_id",
+        pipeline: [
+          { $match: { user_id: new mongoose.Types.ObjectId(userId) } },
+        ],
+        as: "goals",
+      },
+    },
+    {
+      $addFields: {
+        avg_progress: { $avg: "$goals.progress" },
+      },
+    },
+  ]);
 
   res.json({ domains });
-  
 };
 
 export default {
