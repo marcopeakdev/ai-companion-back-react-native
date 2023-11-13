@@ -1,8 +1,10 @@
 import express from "express";
 import chatController from "../controllers/chat";
+import authMiddleware from "../middlewares/auth";
 
 const router = express.Router();
-// auth
-router.get("/chat-message", chatController.chat);
+// 
+router.get("/messages", authMiddleware.ensureLogin, chatController.getMessages);
+router.post("/message", authMiddleware.ensureLogin, chatController.sendMessage);
 
 export default router;
