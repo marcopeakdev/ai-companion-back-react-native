@@ -10,6 +10,7 @@ dotenv.config();
 import * as middlewares from './middlewares';
 import MessageResponse from './interfaces/MessageResponse';
 import auth from './routes/auth'
+import chat from './routes/chat'
 import profile from './routes/profile'
 import question from './routes/question'
 
@@ -37,6 +38,7 @@ app.get<{}, MessageResponse>('/', (req, res) => {
 });
 //routes
 app.use("/api/auth", auth);
+app.use("/api/chat", chat);
 app.use("/api/profile", profile);
 app.use("/api/question", question);
 
