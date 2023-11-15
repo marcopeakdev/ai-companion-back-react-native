@@ -12,5 +12,6 @@ router.post("/set-goal", authMiddleware.ensureLogin, profileController.setGoal);
 router.post("/goal-progress", authMiddleware.ensureLogin, profileController.saveGoalProgress);
 router.delete("/goal", authMiddleware.ensureLogin, profileController.deleteGoal);
 router.get("/progress", authMiddleware.ensureLogin, profileController.getProgress);
+router.get("/tips", authMiddleware.ensureLogin, profileController.getTips);
 
 export default router;  

@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import { Request, Response } from "express";
 import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
@@ -5,8 +6,10 @@ import Goal from "../models/goal";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
 import User from "../models/user";
+import { IUserQuestion, IGoalQuestion, IGoal } from "../models/schema-types";
+import { getOpenAiKey, getTipCount, selectOpenAiChatModel } from "../util";
 
-const getQestionsandTips = async (req: Request, res: Response) => {
+const getQestions = async (req: Request, res: Response) => {
   const userId = req.body.userId;
   const questions = await User.findById(userId)
     .populate("user_question_id")
@@ -21,13 +24,13 @@ const getQestionsandTips = async (req: Request, res: Response) => {
     ? questions?.question_display_date.getDate()
     : 0;
   switch (questions?.question_display_interval) {
-    case 0: // 0: A day
+    case 0: // 0: ask a question A day
       if (questionDisplayDate * 1 <= 1 + todayDate) {
-      return res.status(200).send(questions);
+        return res.status(200).send(questions);
       }
       res.status(200).send({ message: "no" });
       break;
-    case 1: // 1 : A week:
+    case 1: // 1 : ask a question A week:
       if (todayDay * 1 === 1) {
         //display questions per Monday
         return res.status(200).send(questions);
@@ -35,7 +38,7 @@ const getQestionsandTips = async (req: Request, res: Response) => {
       res.status(200).send({ message: "no" });
       break;
 
-    default: // 2: A month
+    default: // 2: ask a question A month
       if (todayDate * 1 === 1) {
         // display questions per  first day of every month
         //display questions per Monday
@@ -200,9 +203,52 @@ const updateQuestionDisplayDate = async (req: Request, res: Response) => {
   res.status(200).send({ message: "date update success!" });
 };
 
+const openai = new OpenAI({
+  apiKey: getOpenAiKey(), // defaults to process.env["OPENAI_API_KEY"]
+});
+
+const updateTips = async (req: Request, res: Response) => {
+  const { userId, goalId } = req.body;
+  const goal = await Goal.findOne({ _id: goalId });
+  if (!goal) return res.status(400).send({ message: "Goal doesn't exist" });
+  let tipPrompt =
+    "These are my information consists of questions and answers. \n";
+
+  const userAnswers = await UserAnswer.find({ user_id: userId })
+    .populate<{ user_question_id: IUserQuestion }>("user_question_id")
+    .exec();
+  userAnswers.forEach((item) => {
+    tipPrompt += item.user_question_id?.content + " " + item.content + "\n ";
+  });
+
+  const goalAnswers = await GoalAnswer.find({ goal_id: goalId })
+    .populate<{ goal_question_id: IGoalQuestion }>("goal_question_id")
+    .exec();
+  goalAnswers.forEach((item) => {
+    tipPrompt += item.goal_question_id?.content + " " + item.content + "\n ";
+  });
+
+  tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${
+    goal.content
+  }`;
+  const chatCompletion = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "user",
+        content: tipPrompt,
+      },
+    ],
+    model: selectOpenAiChatModel(),
+  });
+  const tips = chatCompletion.choices[0].message.content;
+  await Goal.findOneAndUpdate({ _id: goalId }, { tips });
+  res.status(200).send({ message: "tip update success!" });
+};
+
 export default {
-  getQestionsandTips,
+  getQestions,
   saveUserAnswer,
   saveGoalAnswer,
   updateQuestionDisplayDate,
+  updateTips,
 };

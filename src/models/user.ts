@@ -1,28 +1,5 @@
-import mongoose from "mongoose";
-//import mongoose from 'mongoose';
-const { Schema } = mongoose;
-
-interface IUser {
-  name: String,
-  email: String,
-  avatar: String,
-  password: string,
-  age: Number,
-  height: Number,
-  weight: Number,
-  gender: Number,
-  marial_status: Number,
-  question_display_interval: Number,
-  question_display_date: Date,
-  tip_display_interval: Number,
-  tip_display_date: Date,
-  children: mongoose.Schema.Types.ObjectId,
-  user_question_id: mongoose.Types.ObjectId,
-  goal_id: mongoose.Schema.Types.ObjectId,
-  goal_question_id: mongoose.Types.ObjectId,
-  tip_id: String,
-  _id: mongoose.Schema.Types.ObjectId
-}
+import { Schema, model } from "mongoose";
+import { IUser } from "./schema-types";
 
 const userSchema = new Schema<IUser>({
   name: {
@@ -55,52 +32,63 @@ const userSchema = new Schema<IUser>({
     type: Number,
     required: true,
   },
-  gender: {            // 0: female, 1: male
+  gender: {
+    // 0: female, 1: male
     type: Number,
     required: true,
   },
-  marial_status: {  // 0: single, 1 : married:, 2: divorced 
+  marial_status: {
+    // 0: single, 1 : married:, 2: divorced
     type: Number,
     required: true,
   },
-  question_display_interval: {  // 0: A day, 1 : A week:, 2: A month 
+  question_display_interval: {
+    // 0: A day, 1 : A week:, 2: A month
     type: Number,
     required: true,
-    default: 0
+    default: 0,
   },
   question_display_date: {
-		type: Date,
-		default: new Date(+new Date() + (24 + 1)*60*60*1000),
-	},
-  tip_display_interval: {  // 0: A day, 1 : A week:, 2: A month 
+    type: Date,
+    default: new Date(+new Date() + (24 + 1) * 60 * 60 * 1000),
+  },
+  tip_display_interval: {
+    // 0: A day, 1 : A week:, 2: A month
     type: Number,
     required: true,
-    default: 0
+    default: 0,
   },
   tip_display_date: {
     type: Date,
-    default: +new Date() + (24 + 1)*60*60*1000,
+    default: +new Date() + (24 + 1) * 60 * 60 * 1000,
   },
   children: {
     type: Schema.Types.ObjectId,
     ref: "Children",
   },
-  user_question_id: {       // user_question_id to ask a question about user everyday or weekly so this field is changed everyday or weekly
+  user_question_id: {
+    // user_question_id to ask a question about user everyday or weekly so this field is changed everyday or weekly
     type: Schema.Types.ObjectId,
     ref: "User_question",
   },
-  goal_id: {      // goal_id to ask a question about goal everyday or weekly so this field is updated if question of this goal is ended 
+  goal_id: {
+    // goal_id to ask a question about goal everyday or weekly so this field is updated if question of this goal is ended
     type: Schema.Types.ObjectId,
     ref: "Goal",
   },
-  goal_question_id: {      // goal_question_id to ask a question about goal everyday or weekly so this field is changed everyday or weekly
+  goal_question_id: {
+    // goal_question_id to ask a question about goal everyday or weekly so this field is changed everyday or weekly
     type: Schema.Types.ObjectId,
     ref: "Goal_question",
   },
-  tip_id: {
-    type: String,
-    default: "0",
+  goal_id_for_tip: {
+    type: Schema.Types.ObjectId,
+    ref: "Goal",
   },
+  tip_number: {
+    type: Number,
+    default: 0
+  }
 });
 
-export default mongoose.model<IUser>("User", userSchema);
+export default model<IUser>("User", userSchema);

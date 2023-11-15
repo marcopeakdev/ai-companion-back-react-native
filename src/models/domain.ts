@@ -1,9 +1,5 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
-
-interface IDomain {
-  content: String
-}
+import { Schema, model } from "mongoose";
+import { IDomain } from "./schema-types";
 
 const domainSchema = new Schema<IDomain>(
   {
@@ -22,4 +18,4 @@ domainSchema.virtual("goals", {
   justOne: false, // set true for one-to-one relationship
 });
 
-export default mongoose.model<IDomain>("Domain", domainSchema);
+export default model<IDomain>("Domain", domainSchema);

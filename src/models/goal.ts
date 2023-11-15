@@ -1,30 +1,26 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
-
-interface IGoal {
-  user_id: mongoose.Schema.Types.ObjectId,
-  domain_id: mongoose.Schema.Types.ObjectId,
-  content: String,
-  progress: Number,
-}
+import { Schema, model } from "mongoose";
+import { IGoal } from "./schema-types";
 
 const goalSchema = new Schema<IGoal>({
   user_id: {
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
+    type: Schema.Types.ObjectId,
+    ref: "User",
   },
   domain_id: {
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Domain',
+    type: Schema.Types.ObjectId,
+    ref: "Domain",
   },
   content: {
     type: String,
     required: true,
   },
+  tips: {
+    type: String,
+  },
   progress: {
-    type: Number,   //1-10 number
-    default: 0
-  }
+    type: Number, //1-10 number
+    default: 0,
+  },
 });
 
-export default mongoose.model<IGoal>("Goal", goalSchema);
+export default model<IGoal>("Goal", goalSchema);

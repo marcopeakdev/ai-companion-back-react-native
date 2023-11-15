@@ -1,9 +1,10 @@
 import OpenAI from "openai";
 import { Request, Response } from "express";
 import Chat from "../models/chat";
+import { getOpenAiKey, selectOpenAiChatModel } from "../util";
 
 const openai = new OpenAI({
-  apiKey: "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", // defaults to process.env["OPENAI_API_KEY"]
+  apiKey: getOpenAiKey(), // defaults to process.env["OPENAI_API_KEY"]
 });
 
 const getMessages = async (req: Request, res: Response) => {
@@ -22,15 +23,10 @@ const sendMessage = async (req: Request, res: Response) => {
         content: userMessage,
       },
     ],
-    model: "gpt-3.5-turbo",
+    model: selectOpenAiChatModel(),
   });
   const aiMessage = chatCompletion.choices[0].message.content;
-  console.log(
-    "messagetype->",
-    typeof chatCompletion.choices[0].message,
-    "aimessage->",
-    chatCompletion.choices[0].message.content
-  );
+  console.log("aimessage->", chatCompletion.choices[0].message.content);
 
   const chatRow = {
     user_id: userId,

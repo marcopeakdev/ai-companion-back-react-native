@@ -1,12 +1,5 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
-
-interface IChildren {
-  name: String,
-  age: Number,
-  gender: Number,
-
-}
+import { Schema, model } from "mongoose";
+import { IChildren } from "./schema-types";
 
 const childrenSchema = new Schema<IChildren>({
   name: {
@@ -26,4 +19,4 @@ const childrenSchema = new Schema<IChildren>({
   },
 });
 
-module.exports = mongoose.model<IChildren>("Children", childrenSchema);
+module.exports = model<IChildren>("Children", childrenSchema);

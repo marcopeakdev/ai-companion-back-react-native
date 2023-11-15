@@ -1,14 +1,9 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
-
-interface IUserQuestion {
-  _id: mongoose.Schema.Types.ObjectId,
-  content: String
-}
+import { Schema, model } from "mongoose";
+import { IUserQuestion } from "./schema-types";
 
 const userQuestionSchema = new Schema<IUserQuestion>({
   _id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
   },
   content: {
     type: String,
@@ -16,4 +11,4 @@ const userQuestionSchema = new Schema<IUserQuestion>({
   },
 });
 
-export default mongoose.model<IUserQuestion>("User_question", userQuestionSchema);
+export default model<IUserQuestion>("User_question", userQuestionSchema);
