@@ -72,7 +72,7 @@ const userSchema = new Schema<IUser>({
     ref: "User_question",
   },
   goal_id: {
-    // goal_id to ask a question about goal everyday or weekly so this field is updated if question of this goal is ended
+    // goal_id to ask a question about goal everyday or weekly so this field is updated if question of this goal are ended
     type: Schema.Types.ObjectId,
     ref: "Goal",
   },
@@ -81,14 +81,16 @@ const userSchema = new Schema<IUser>({
     type: Schema.Types.ObjectId,
     ref: "Goal_question",
   },
-  goal_id_for_tip: {
+  goal_tip_id: {
+    // goal_id_for_tip to display some tips about goal everyday or weekly so this field is updated into next goal_id if the tips of this goal are displayed at all
     type: Schema.Types.ObjectId,
     ref: "Goal",
   },
   tip_number: {
+    // tip_number to display some tips about goal everyday or weekly so this field is changed everyday or weekly
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 });
 
 export default model<IUser>("User", userSchema);

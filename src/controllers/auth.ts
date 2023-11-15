@@ -47,8 +47,8 @@ const signup = async (req: Request, res: Response) => {
   if (user) {
     return res.status(400).json({ message: "User already exist!" });
   }
- const userQuestions = await UserQuestion.find({});
- const goalQuestions = await GoalQuestion.find({});
+  const userQuestions = await UserQuestion.find({});
+  const goalQuestions = await GoalQuestion.find({});
   const userInfo = {
     name,
     email,
@@ -61,7 +61,7 @@ const signup = async (req: Request, res: Response) => {
     user_question_id: userQuestions[0]._id,
     goal_question_id: goalQuestions[0]._id,
   };
-  
+
   // Crypt the password
   const salt = await bcrypt.genSalt(10);
   userInfo.password = await bcrypt.hash(password, salt);
@@ -141,19 +141,30 @@ const getUser = (req: Request, res: Response) => {
     if (!userInfo) {
       return res.status(400).send({ message: "User is not exist" });
     }
-
+    const {
+      name,
+      avatar,
+      age,
+      email,
+      height,
+      weight,
+      gender,
+      marial_status,
+      question_display_interval,
+      tip_display_interval,
+    } = userInfo;
     res.status(200).send({
       user: {
-        name: userInfo.name,
-        avatar: userInfo.avatar,
-        age: userInfo.age,
-        userEmail: userInfo.email,
-        height: userInfo.height,
-        weight: userInfo.weight,
-        gender: userInfo.gender,
-        marial_status: userInfo.marial_status,
-        question_display_interval: userInfo.question_display_interval,
-        tip_display_interval: userInfo.tip_display_interval,
+        name,
+        avatar,
+        age,
+        userEmail: email,
+        height,
+        weight,
+        gender,
+        marial_status,
+        question_display_interval,
+        tip_display_interval,
       },
     });
   });

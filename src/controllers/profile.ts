@@ -2,13 +2,18 @@ import OpenAI from "openai";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 
-import { getOpenAiKey, getTipCount, selectOpenAiChatModel } from "../util";
+import {
+  getOpenAiKey,
+  getTipCount,
+  selectOpenAiChatModel,
+  getDisplayingTipCount,
+} from "../util";
 import User from "../models/user";
 import Domain from "../models/domain";
 import Goal from "../models/goal";
 import UserAnswer from "../models/user-answer";
-import user from "../models/user";
-import { IUserQuestion } from "../models/schema-types";
+import { IUserQuestion, IGoal } from "../models/schema-types";
+import GoalAnswer from "../models/goal-answer";
 
 const setQuestionInterval = async (req: Request, res: Response) => {
   const { email, questionDisplayInterval } = req.body;
@@ -75,7 +80,7 @@ const setGoal = async (req: Request, res: Response) => {
     user_id: userId,
     content,
     domain_id: domain,
-    tips
+    tips,
   });
 
   const goal = await goalRow.save();
@@ -87,6 +92,7 @@ const setGoal = async (req: Request, res: Response) => {
       { _id: userId },
       {
         goal_id: goalId,
+        goal_tip_id: goalId,
       }
     );
   }
@@ -101,7 +107,48 @@ const saveGoalProgress = async (req: Request, res: Response) => {
 };
 
 const deleteGoal = async (req: Request, res: Response) => {
-  await Goal.deleteOne({ _id: req.query.id });
+  const userId = req.body.userId;
+  const deletingGoalId = req.query.id;
+  //update goal_id and goal_tip_id to display questions and tips
+  await Promise.all([
+    Goal.deleteOne({ _id: deletingGoalId }),
+    GoalAnswer.deleteMany({ goal_id: deletingGoalId }),
+  ]);
+  const goals = await Goal.find({
+    user_id: userId,
+    _id: { $ne: deletingGoalId },
+  });
+
+  if (goals.length === 0) {
+    await User.findOneAndUpdate(
+      { _id: userId },
+      { goal_id: null, goal_tip_id: null }
+    );
+  } else {
+    const existGoalId = await User.findOne({
+      _id: userId,
+      goal_id: deletingGoalId,
+    });
+    const updatingUserGoalId = goals[0]._id;
+    if (existGoalId) {
+      await User.findOneAndUpdate(
+        { _id: userId },
+        { goal_id: updatingUserGoalId }
+      );
+    }
+    const existGoalTipId = await User.findOne({
+      _id: userId,
+      goal_tip_id: deletingGoalId,
+    });
+
+    if (existGoalTipId) {
+      await User.findOneAndUpdate(
+        { _id: userId },
+        { goal_tip_id: updatingUserGoalId }
+      );
+    }
+  }
+
   res.status(200).send({ message: "deleting success!" });
 };
 
@@ -130,7 +177,90 @@ const getProgress = async (req: Request, res: Response) => {
   res.json({ domains });
 };
 
-const getTips = (req: Request, res: Response) => {};
+const getTips = async (req: Request, res: Response) => {
+  const userId = req.body.userId;
+  const userTips = await User.findById(userId)
+    .populate<{ goal_tip_id: IGoal }>("goal_tip_id")
+    .exec();
+
+  const splitTips = userTips?.goal_tip_id.tips
+    .split(/\d+\.\s+/)
+    .filter(Boolean)
+    .map((item) => item.trim());
+
+  // Log the result
+  const tips = splitTips?.splice(
+    userTips?.tip_number as number,
+    getDisplayingTipCount()
+  );
+  const today = new Date();
+  const todayDate = today.getDate();
+  const todayDay = today.getDay();
+  const tipDisplayDate = userTips?.tip_display_date.getDate()
+    ? userTips?.tip_display_date.getDate()
+    : 0;
+  const response = { goal: userTips?.goal_tip_id.content, tips };
+  switch (userTips?.tip_display_interval) {
+    case 0: // 0: ask a tip A day
+      if (tipDisplayDate * 1 <= 1 + todayDate) {
+      return res.status(200).send(response);
+      }
+      break;
+    case 1: // 1 : ask a tip A week:
+      if (todayDay * 1 === 1) {
+        //display userTips per Monday
+        return res.status(200).send(response);
+      }
+      break;
+
+    default: // 2: ask a tip A month
+      if (todayDate * 1 === 1) {
+        // display userTips per  first day of every month
+        //display userTips per Monday
+        return res.status(200).send(response);
+      }
+      break;
+  }
+  res.status(200).send({ message: "no" });
+};
+
+const updateTipsDate = async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  const user = await User.findById(userId);
+  let newTipNumber = (user?.tip_number as number) + getDisplayingTipCount();
+  const currentGoalId = user?.goal_tip_id;
+  let newGoalId = currentGoalId;
+  // when tipnumber is bigger than tipcount
+  //operation to add new user goals collection id for tips in user collection
+  //To display the user goal tips iterally
+  const goals = await Goal.find({ user_id: userId });
+  if (newTipNumber >= getTipCount()) {
+    newTipNumber = 0;
+    if (goals.length !== 1) {
+      const nextGoal = await Goal.find({ _id: { $gt: currentGoalId } })
+        .sort({ _id: 1 })
+        .limit(1);
+      console.log("nextGoal->", nextGoal);
+      if (nextGoal.length !== 0) {
+        newGoalId = nextGoal[0]._id;
+      } else {
+        newGoalId = goals[0]._id;
+      }
+    }
+  }
+  const newTipDisplayDate = new Date(
+    +new Date() + (2 * 24 + 1) * 60 * 60 * 1000
+  );
+  await User.findOneAndUpdate(
+    { _id: userId },
+    {
+      goal_tip_id: newGoalId,
+      tip_display_date: newTipDisplayDate,
+      tip_number: newTipNumber,
+    }
+  );
+  res.status(200).send({ message: "Success tip date updating!" });
+};
 
 export default {
   setQuestionInterval,
@@ -142,4 +272,5 @@ export default {
   saveGoalProgress,
   getProgress,
   getTips,
+  updateTipsDate,
 };

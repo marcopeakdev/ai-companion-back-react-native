@@ -10,6 +10,10 @@ export const getTipCount = () => {
   return 20;
 };
 
+export const getDisplayingTipCount = () => {
+  return 5;
+};
+
 export const selectOpenAiChatModel = () => {
   const models = [
     "gpt-3.5-turbo-16k",

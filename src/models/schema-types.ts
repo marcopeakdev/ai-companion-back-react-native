@@ -63,7 +63,7 @@ export interface IUser {
   user_question_id: Types.ObjectId;
   goal_id: Types.ObjectId;
   goal_question_id: Types.ObjectId;
-  goal_id_for_tip: Types.ObjectId;
+  goal_tip_id: Types.ObjectId;
   tip_number: Number;
   _id: Types.ObjectId;
 }

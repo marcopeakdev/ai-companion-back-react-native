@@ -75,31 +75,22 @@ const saveUserAnswer = async (req: Request, res: Response) => {
     }
   }
 
-  const questions = await User.findById(userId)
-    .populate("user_question_id")
-    .populate("goal_question_id")
-    .exec();
+  const user = await User.findById(userId);
   //operation to add new user question collection id in user collection
   //To display the user questions iterally
+  const currentUserQuestionId = user?.user_question_id;
+  let newUserQuestionId = currentUserQuestionId;
   const userQuestionIds = await UserQuestion.find({}).select("_id");
-  let newUserQuestionId: any = "";
-  const userQuestionIdsLength = userQuestionIds.length;
-  const currentUserQuestionId = questions?.user_question_id?._id.toString();
-  if (
-    currentUserQuestionId === //when current question is last item in user question collection
-    userQuestionIds[userQuestionIdsLength - 1]._id.toString()
-  ) {
-    newUserQuestionId = userQuestionIds[0]._id; // question is displayed first item
+  const nextUserQuestion = await UserQuestion.find({
+    _id: { $gt: currentUserQuestionId },
+  })
+    .sort({ _id: 1 })
+    .limit(1);
+  if (nextUserQuestion.length === 1) {
+    newUserQuestionId = nextUserQuestion[0]._id;
   } else {
-    //when current question is not last item in user question collection
-    for (let i = 0; i < userQuestionIdsLength - 1; i++) {
-      if (currentUserQuestionId === userQuestionIds[i]._id.toString()) {
-        newUserQuestionId = userQuestionIds[i + 1]._id;
-        break;
-      }
-    }
+    newUserQuestionId = userQuestionIds[0]._id;
   }
-
   await User.findOneAndUpdate(
     { _id: userId },
     { user_question_id: newUserQuestionId }

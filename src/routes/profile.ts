@@ -13,5 +13,6 @@ router.post("/goal-progress", authMiddleware.ensureLogin, profileController.save
 router.delete("/goal", authMiddleware.ensureLogin, profileController.deleteGoal);
 router.get("/progress", authMiddleware.ensureLogin, profileController.getProgress);
 router.get("/tips", authMiddleware.ensureLogin, profileController.getTips);
+router.patch("/tips-date", authMiddleware.ensureLogin, profileController.updateTipsDate);
 
 export default router;  
