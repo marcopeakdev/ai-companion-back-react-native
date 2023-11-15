@@ -1,19 +1,14 @@
-import OpenAI from "openai";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 
-import {
-  getOpenAiKey,
-  getTipCount,
-  selectOpenAiChatModel,
-  getDisplayingTipCount,
-} from "../util";
+import { getTipCount, getDisplayingTipCount } from "../util";
 import User from "../models/user";
 import Domain from "../models/domain";
 import Goal from "../models/goal";
 import UserAnswer from "../models/user-answer";
 import { IUserQuestion, IGoal } from "../models/schema-types";
 import GoalAnswer from "../models/goal-answer";
+import { chatBot } from "../chat";
 
 const setQuestionInterval = async (req: Request, res: Response) => {
   const { email, questionDisplayInterval } = req.body;
@@ -47,10 +42,6 @@ const getGoal = async (req: Request, res: Response) => {
   res.status(200).send(goals);
 };
 
-const openai = new OpenAI({
-  apiKey: getOpenAiKey(), // defaults to process.env["OPENAI_API_KEY"]
-});
-
 const setGoal = async (req: Request, res: Response) => {
   const { domain, content, userId } = req.body;
 
@@ -58,24 +49,14 @@ const setGoal = async (req: Request, res: Response) => {
   const userAnswers = await UserAnswer.find({ user_id: userId })
     .populate<{ user_question_id: IUserQuestion }>("user_question_id")
     .exec();
-  let tipPrompt =
-    "These are my information consists of questions and answers. \n";
+
+  let tipPrompt = `My email is ${userId}. I already said that you use email to identify me.\n These are my information consists of questions and answers. \n`;
   userAnswers.forEach((item) => {
     tipPrompt += item.user_question_id?.content + " " + item.content + "\n ";
   });
 
   tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${content}`;
-  const chatCompletion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "user",
-        content: tipPrompt,
-      },
-    ],
-    model: selectOpenAiChatModel(),
-  });
-  const tips = chatCompletion.choices[0].message.content;
-
+  const tips = await chatBot(tipPrompt);
   const goalRow = new Goal({
     user_id: userId,
     content,
@@ -203,7 +184,7 @@ const getTips = async (req: Request, res: Response) => {
   switch (userTips?.tip_display_interval) {
     case 0: // 0: ask a tip A day
       if (tipDisplayDate * 1 <= 1 + todayDate) {
-      return res.status(200).send(response);
+        return res.status(200).send(response);
       }
       break;
     case 1: // 1 : ask a tip A week:

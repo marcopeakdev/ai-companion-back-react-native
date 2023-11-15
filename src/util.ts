@@ -3,7 +3,7 @@ export const getJwtSecret = () => {
 };
 
 export const getOpenAiKey = () => {
-  return "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";
+  return "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";
 };
 
 export const getTipCount = () => {

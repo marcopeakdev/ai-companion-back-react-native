@@ -1,11 +1,15 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
+
+import { IUser, IUserQuestion, IGoalQuestion } from "../models/schema-types";
 import User from "../models/user";
 import UserQuestion from "../models/user-question";
+import UserAnswer from "../models/user-answer";
 import GoalQuestion from "../models/goal-question";
+import GoalAnswer from "../models/goal-answer";
 import { getJwtSecret } from "../util";
-
+import { chatBot } from "../chat";
 const signup = async (req: Request, res: Response) => {
   console.log("signup", req.body);
   const {
@@ -170,4 +174,37 @@ const getUser = (req: Request, res: Response) => {
   });
 };
 
-export default { signup, signin, getUser };
+const load = async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  const user = (await User.findById(userId)) as IUser;
+  const genderArr = ["female", "male"];
+  const marialStatusArr = ["single", "married", "divorced"];
+  const { name, age, height, weight, gender, email, marial_status } = user;
+  let startUserMessage = `Hello, Your role is my assistant. You need to remember my information in order to help me to achieve my goals. 
+  When I want your help, I will say my email at first. You must identify me by email. My informatin is something like. 
+  Email: ${userId}, Name: ${name}, Age: ${age}, Height: ${height}, Weight: ${weight}, 
+  gender: ${genderArr[gender as number]}, marial_status: ${
+    marialStatusArr[marial_status as number]
+  }`;
+
+  const userAnswer = await UserAnswer.find({ user_id: userId })
+    .populate<{ user_question_id: IUserQuestion }>("user_question_id")
+    .exec();
+  userAnswer.forEach((item, index) => {
+    startUserMessage +=
+      "\n" + item.user_question_id.content + "\n" + item.content;
+  });
+
+  const goalAnswer = await GoalAnswer.find({ user_id: userId })
+    .populate<{ goal_question_id: IUserQuestion }>("goal_question_id")
+    .exec();
+  goalAnswer.forEach((item, index) => {
+    startUserMessage +=
+      "\n" + item.goal_question_id.content + "\n" + item.content;
+  });
+
+  await chatBot(startUserMessage);
+  res.status(200).send({ message: "Loading success!" });
+};
+
+export default { signup, signin, getUser, load };

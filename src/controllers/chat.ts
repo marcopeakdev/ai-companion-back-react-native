@@ -1,12 +1,6 @@
-import OpenAI from "openai";
 import { Request, Response } from "express";
 import Chat from "../models/chat";
-import { getOpenAiKey, selectOpenAiChatModel } from "../util";
-
-const openai = new OpenAI({
-  apiKey: getOpenAiKey(), // defaults to process.env["OPENAI_API_KEY"]
-});
-
+import { chatBot } from "../chat";
 const getMessages = async (req: Request, res: Response) => {
   const { userId } = req.body;
   const messages = await Chat.find({ user_id: userId });
@@ -15,18 +9,9 @@ const getMessages = async (req: Request, res: Response) => {
 
 const sendMessage = async (req: Request, res: Response) => {
   const { userId, userMessage } = req.body;
+  const message = `My email is ${userId}. I already said that you use email to identify me.\n ${userMessage}`;
 
-  const chatCompletion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ],
-    model: selectOpenAiChatModel(),
-  });
-  const aiMessage = chatCompletion.choices[0].message.content;
-  console.log("aimessage->", chatCompletion.choices[0].message.content);
+  const aiMessage = await chatBot(message);
 
   const chatRow = {
     user_id: userId,
