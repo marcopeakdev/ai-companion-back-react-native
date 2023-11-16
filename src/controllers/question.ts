@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import UserQuestion from "../models/user-question";
+import mongoose from "mongoose";
 import UserAnswer from "../models/user-answer";
 import Goal from "../models/goal";
 import GoalQuestion from "../models/goal-question";
@@ -26,7 +27,7 @@ const getQestions = async (req: Request, res: Response) => {
   switch (questions?.question_display_interval) {
     case 0: // 0: ask a question A day
       if (questionDisplayDate * 1 <= 1 + todayDate) {
-        return res.status(200).send(questions);
+      return res.status(200).send(questions);
       }
       res.status(200).send({ message: "no" });
       break;
@@ -101,80 +102,61 @@ const saveUserAnswer = async (req: Request, res: Response) => {
 const saveGoalAnswer = async (req: Request, res: Response) => {
   const { userId, isSkipGoalAnswer, goalId, goalAnswer, goalQuestionId } =
     req.body;
-
+  console.log(req.body)
   if (!isSkipGoalAnswer) {
     const existGoalAnswer = await GoalAnswer.find({
-      user_id: userId,
+      goal_id: goalId,
       goal_question_id: goalQuestionId,
     });
     if (existGoalAnswer.length !== 0) {
       await GoalAnswer.findOneAndUpdate(
-        { user_id: userId, goal_question_id: goalQuestionId },
+        { goal_id: goalId, goal_question_id: goalQuestionId },
         { content: goalAnswer }
       );
     } else {
       const savingGoalAnswerRow = {
-        goal_id: goalId,
-        goal_question_id: goalQuestionId,
+        goal_id: new mongoose.Types.ObjectId(goalId),
+        goal_question_id: new mongoose.Types.ObjectId(goalQuestionId),
         content: goalAnswer,
       };
       await GoalAnswer.create(savingGoalAnswerRow);
     }
   }
 
-  const questions = await User.findById(userId)
-    .populate("user_question_id")
-    .populate("goal_question_id")
-    .exec();
-
+  const user = await User.findById(userId);
   //operation to add new goal question collection id in user collection
+  const currentGoalQuestionId = user?.goal_question_id;
+  let newGoalQuestionId = currentGoalQuestionId;
   const goalQuestionIds = await GoalQuestion.find({}).select("_id");
-  let newGoalQuestionId: any = "";
-  const goalQuestionIdsLength = goalQuestionIds.length;
-  const currentGoalQuestionId = questions?.goal_question_id?._id.toString();
-  if (
-    currentGoalQuestionId === //when current question is last item in goal question collection
-    goalQuestionIds[goalQuestionIdsLength - 1]._id.toString()
-  ) {
-    // question of first item is displayed
-    newGoalQuestionId = goalQuestionIds[0]._id;
-    //also we have to chage goal_id in user collections in order to display the question of the another goal
-    const goalIds = await Goal.find({ user_id: userId }).select("_id");
-    let newGoalId: any = "";
-    const goalIdsLength = goalIds.length;
-    const currentGoalId = questions?.goal_id?.toString();
-    if (
-      currentGoalId === //when current goal is last item in goal collection
-      goalIds[goalIdsLength - 1]._id.toString()
-    ) {
-      // goal of first item is displayed
-      newGoalId = goalIds[0]._id;
-    } else {
-      //when current question is not last item in user question collection
-      for (let i = 0; i < goalIdsLength - 1; i++) {
-        if (currentGoalId === goalIds[i]._id.toString()) {
-          newGoalId = goalIds[i + 1]._id;
-          break;
-        }
-      }
-    }
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { goal_id: newGoalId, goal_question_id: newGoalQuestionId }
-    );
+  const nextGoalQuestion = await GoalQuestion.find({
+    _id: { $gt: currentGoalQuestionId },
+  })
+    .sort({ _id: 1 })
+    .limit(1);
+  if (nextGoalQuestion.length === 1) {
+    newGoalQuestionId = nextGoalQuestion[0]._id;
   } else {
-    //when current question is not last item in user question collection
-    for (let i = 0; i < goalQuestionIdsLength - 1; i++) {
-      if (currentGoalQuestionId === goalQuestionIds[i]._id.toString()) {
-        newGoalQuestionId = goalQuestionIds[i + 1]._id;
-        break;
-      }
-    }
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { goal_question_id: newGoalQuestionId }
-    );
+    newGoalQuestionId = goalQuestionIds[0]._id;
   }
+  //operation to add new goal collection id in user collection
+  const currentGoalId = user?.goal_id;
+  let newGoalId = currentGoalId;
+  const goalIds = await Goal.find({ user_id: userId }).select("_id");
+  const nextGoal = await Goal.find({
+    _id: { $gt: currentGoalId },
+  })
+    .sort({ _id: 1 })
+    .limit(1);
+  if (nextGoal.length === 1) {
+    newGoalId = nextGoal[0]._id;
+  } else {
+    newGoalId = goalIds[0]._id;
+  }
+  await User.findOneAndUpdate(
+    { _id: userId },
+    { goal_id: newGoalId, goal_question_id: newGoalQuestionId }
+  );
+
   res.status(200).send({ message: "goal answer is saved successfully!" });
 };
 
@@ -217,7 +199,7 @@ const updateTips = async (req: Request, res: Response) => {
   tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${
     goal.content
   }`;
-  const tips = chatBot(tipPrompt);
+  const tips = await chatBot(tipPrompt);
   await Goal.findOneAndUpdate({ _id: goalId }, { tips });
   res.status(200).send({ message: "tip update success!" });
 };

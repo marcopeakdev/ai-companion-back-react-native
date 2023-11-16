@@ -4,7 +4,7 @@ import { IGoalAnswer } from "./schema-types";
 const goalAnswerSchema = new Schema<IGoalAnswer>({
   goal_id: {
     type: Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Goal",
   },
   goal_question_id: {
     type: Schema.Types.ObjectId,

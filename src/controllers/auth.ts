@@ -8,6 +8,7 @@ import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
+import Goal from "../models/goal-answer";
 import { getJwtSecret } from "../util";
 import { chatBot } from "../chat";
 const signup = async (req: Request, res: Response) => {
@@ -195,13 +196,13 @@ const load = async (req: Request, res: Response) => {
       "\n" + item.user_question_id.content + "\n" + item.content;
   });
 
-  const goalAnswer = await GoalAnswer.find({ user_id: userId })
-    .populate<{ goal_question_id: IUserQuestion }>("goal_question_id")
-    .exec();
-  goalAnswer.forEach((item, index) => {
-    startUserMessage +=
-      "\n" + item.goal_question_id.content + "\n" + item.content;
-  });
+  // const goalAnswer = await Goal.find({ user_id: userId })
+  //   .populate<{ goal_question_id: IUserQuestion }>("goal_question_id")
+  //   .exec();
+  // goalAnswer.forEach((item, index) => {
+  //   startUserMessage +=
+  //     "\n" + item.goal_question_id.content + "\n" + item.content;
+  // });
 
   await chatBot(startUserMessage);
   res.status(200).send({ message: "Loading success!" });

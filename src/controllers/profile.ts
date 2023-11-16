@@ -163,8 +163,10 @@ const getTips = async (req: Request, res: Response) => {
   const userTips = await User.findById(userId)
     .populate<{ goal_tip_id: IGoal }>("goal_tip_id")
     .exec();
-
-  const splitTips = userTips?.goal_tip_id.tips
+  if(!userTips?.goal_tip_id) {
+    return res.status(200).send({ message: "no" });
+  }
+  const splitTips = userTips?.goal_tip_id?.tips
     .split(/\d+\.\s+/)
     .filter(Boolean)
     .map((item) => item.trim());
