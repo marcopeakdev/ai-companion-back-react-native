@@ -1,12 +1,17 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
+import { ChatCompletionMessageParam } from "openai/resources";
 
-import { getTipCount, getDisplayingTipCount } from "../util";
+import {
+  getTipCount,
+  getDisplayingTipCount,
+  getMessagesPerUser,
+} from "../util";
 import User from "../models/user";
 import Domain from "../models/domain";
 import Goal from "../models/goal";
 import UserAnswer from "../models/user-answer";
-import { IUserQuestion, IGoal } from "../models/schema-types";
+import { IUserQuestion, IGoal } from "../types/schema";
 import GoalAnswer from "../models/goal-answer";
 import { chatBot } from "../chat";
 
@@ -44,19 +49,13 @@ const getGoal = async (req: Request, res: Response) => {
 
 const setGoal = async (req: Request, res: Response) => {
   const { domain, content, userId } = req.body;
-
-  //generate and store the tip of the goal when new goal is created.
-  const userAnswers = await UserAnswer.find({ user_id: userId })
-    .populate<{ user_question_id: IUserQuestion }>("user_question_id")
-    .exec();
-
-  let tipPrompt = `My email is ${userId}. I already said that you use email to identify me.\n These are my information consists of questions and answers. \n`;
-  userAnswers.forEach((item) => {
-    tipPrompt += item.user_question_id?.content + " " + item.content + "\n ";
+  const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
+  const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${content}`;
+  messages?.push({
+    role: "user",
+    content: tipPrompt,
   });
-
-  tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${content}`;
-  const tips = await chatBot(tipPrompt);
+  const tips = await chatBot(messages);
   const goalRow = new Goal({
     user_id: userId,
     content,
@@ -163,7 +162,7 @@ const getTips = async (req: Request, res: Response) => {
   const userTips = await User.findById(userId)
     .populate<{ goal_tip_id: IGoal }>("goal_tip_id")
     .exec();
-  if(!userTips?.goal_tip_id) {
+  if (!userTips?.goal_tip_id) {
     return res.status(200).send({ message: "no" });
   }
   const splitTips = userTips?.goal_tip_id?.tips

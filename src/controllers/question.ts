@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ChatCompletionMessageParam } from "openai/resources";
 import UserQuestion from "../models/user-question";
 import mongoose from "mongoose";
 import UserAnswer from "../models/user-answer";
@@ -6,7 +7,7 @@ import Goal from "../models/goal";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
 import User from "../models/user";
-import { IUserQuestion, IGoalQuestion, IGoal } from "../models/schema-types";
+import { IUserQuestion, IGoalQuestion, IGoal } from "../types/schema";
 import { getTipCount } from "../util";
 import { chatBot } from "../chat";
 
@@ -27,7 +28,7 @@ const getQestions = async (req: Request, res: Response) => {
   switch (questions?.question_display_interval) {
     case 0: // 0: ask a question A day
       if (questionDisplayDate * 1 <= 1 + todayDate) {
-      return res.status(200).send(questions);
+        return res.status(200).send(questions);
       }
       res.status(200).send({ message: "no" });
       break;
@@ -102,7 +103,7 @@ const saveUserAnswer = async (req: Request, res: Response) => {
 const saveGoalAnswer = async (req: Request, res: Response) => {
   const { userId, isSkipGoalAnswer, goalId, goalAnswer, goalQuestionId } =
     req.body;
-  console.log(req.body)
+  console.log(req.body);
   if (!isSkipGoalAnswer) {
     const existGoalAnswer = await GoalAnswer.find({
       goal_id: goalId,
@@ -115,6 +116,7 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
       );
     } else {
       const savingGoalAnswerRow = {
+        user_id: new mongoose.Types.ObjectId(userId),
         goal_id: new mongoose.Types.ObjectId(goalId),
         goal_question_id: new mongoose.Types.ObjectId(goalQuestionId),
         content: goalAnswer,
@@ -180,7 +182,7 @@ const updateTips = async (req: Request, res: Response) => {
   const { userId, goalId } = req.body;
   const goal = await Goal.findOne({ _id: goalId });
   if (!goal) return res.status(400).send({ message: "Goal doesn't exist" });
-  let tipPrompt = `My email is ${userId}. I already said that you use email to identify me.\n These are my information consists of questions and answers. \n`;
+  let tipPrompt = `These are my information consists of questions and answers. \n`;
 
   const userAnswers = await UserAnswer.find({ user_id: userId })
     .populate<{ user_question_id: IUserQuestion }>("user_question_id")
@@ -189,17 +191,21 @@ const updateTips = async (req: Request, res: Response) => {
     tipPrompt += item.user_question_id?.content + " " + item.content + "\n ";
   });
 
+  tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${
+    goal.content
+  }\nThese are my goal information consists of questions and answers.`;
+
   const goalAnswers = await GoalAnswer.find({ goal_id: goalId })
     .populate<{ goal_question_id: IGoalQuestion }>("goal_question_id")
     .exec();
   goalAnswers.forEach((item) => {
     tipPrompt += item.goal_question_id?.content + " " + item.content + "\n ";
   });
-
-  tipPrompt += `Also, this is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${
-    goal.content
-  }`;
-  const tips = await chatBot(tipPrompt);
+  console.log("=>>>>", tipPrompt);
+  const tipgeneratingMessages: ChatCompletionMessageParam[] = [
+    { role: "user", content: tipPrompt },
+  ];
+  const tips = await chatBot(tipgeneratingMessages);
   await Goal.findOneAndUpdate({ _id: goalId }, { tips });
   res.status(200).send({ message: "tip update success!" });
 };

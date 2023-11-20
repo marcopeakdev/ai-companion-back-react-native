@@ -1,6 +1,9 @@
+import { ChatCompletionMessageParam } from "openai/resources";
 import { Request, Response } from "express";
 import Chat from "../models/chat";
 import { chatBot } from "../chat";
+import { getMessagesPerUser, storeMessagesPerUser } from "../util";
+
 const getMessages = async (req: Request, res: Response) => {
   const { userId } = req.body;
   const messages = await Chat.find({ user_id: userId });
@@ -9,10 +12,17 @@ const getMessages = async (req: Request, res: Response) => {
 
 const sendMessage = async (req: Request, res: Response) => {
   const { userId, userMessage } = req.body;
-  const message = `My email is ${userId}. I already said that you use email to identify me.\n ${userMessage}`;
-
-  const aiMessage = await chatBot(message);
-
+  const messages = getMessagesPerUser(userId);
+  messages?.push({
+    role: "user",
+    content: userMessage,
+  });
+  const aiMessage = await chatBot(messages);
+  messages?.push({
+    role: "assistant",
+    content: aiMessage,
+  });
+  storeMessagesPerUser(userId, messages);
   const chatRow = {
     user_id: userId,
     user_message: userMessage,

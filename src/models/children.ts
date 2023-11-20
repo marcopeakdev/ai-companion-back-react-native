@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IChildren } from "./schema-types";
+import { IChildren } from "../types/schema";
 
 const childrenSchema = new Schema<IChildren>({
   name: {

@@ -22,6 +22,7 @@ export interface IDomain {
 }
 
 export interface IGoalAnswer {
+  user_id: Types.ObjectId;
   goal_id: Types.ObjectId;
   goal_question_id: Types.ObjectId;
   content: String;

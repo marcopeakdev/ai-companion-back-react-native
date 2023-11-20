@@ -1,3 +1,7 @@
+import { ChatCompletionMessageParam } from "openai/resources";
+import { messagesObj } from "./types/message";
+let chatMessagesPerUser: messagesObj = {};
+
 export const getJwtSecret = () => {
   return "abc123";
 };
@@ -11,7 +15,7 @@ export const getTipCount = () => {
 };
 
 export const getDisplayingTipCount = () => {
-  return 5;
+  return 3;
 };
 
 export const selectOpenAiChatModel = () => {
@@ -28,4 +32,24 @@ export const selectOpenAiChatModel = () => {
     "gpt-3.5-turbo-0301",
   ];
   return models[4];
+};
+
+export const getMongoUri = () => {
+  return "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority";
+};
+
+export const storeMessagesPerUser = (
+  key: string,
+  messages: ChatCompletionMessageParam[]
+) => {
+  chatMessagesPerUser[key] = messages;
+  return;
+};
+
+export const getMessagesPerUser = (key: string) => {
+  return chatMessagesPerUser[key];
+};
+
+export const deleteMessagesPerUser = (key: string) => {
+  delete chatMessagesPerUser[key];
 };

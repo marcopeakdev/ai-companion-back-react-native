@@ -1,16 +1,23 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 
-import { IUser, IUserQuestion, IGoalQuestion } from "../models/schema-types";
+import { IUser, IUserQuestion, IGoalQuestion } from "../types/schema";
 import User from "../models/user";
 import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
-import Goal from "../models/goal-answer";
-import { getJwtSecret } from "../util";
+import Goal from "../models/goal";
+import {
+  deleteMessagesPerUser,
+  getJwtSecret,
+  storeMessagesPerUser,
+} from "../util";
 import { chatBot } from "../chat";
+import { ChatCompletionMessageParam } from "openai/resources";
+
 const signup = async (req: Request, res: Response) => {
   console.log("signup", req.body);
   const {
@@ -63,8 +70,8 @@ const signup = async (req: Request, res: Response) => {
     weight,
     gender,
     marial_status,
-    user_question_id: userQuestions[0]._id,
-    goal_question_id: goalQuestions[0]._id,
+    user_question_id: userQuestions[0]?._id,
+    goal_question_id: goalQuestions[0]?._id,
   };
 
   // Crypt the password
@@ -181,9 +188,10 @@ const load = async (req: Request, res: Response) => {
   const genderArr = ["female", "male"];
   const marialStatusArr = ["single", "married", "divorced"];
   const { name, age, height, weight, gender, email, marial_status } = user;
+
   let startUserMessage = `Hello, Your role is my assistant. You need to remember my information in order to help me to achieve my goals. 
-  When I want your help, I will say my email at first. You must identify me by email. My informatin is something like. 
-  Email: ${userId}, Name: ${name}, Age: ${age}, Height: ${height}, Weight: ${weight}, 
+  My identification informatin is something like. 
+  Email: ${email}, Name: ${name}, Age: ${age}, Height: ${height}, Weight: ${weight}, 
   gender: ${genderArr[gender as number]}, marial_status: ${
     marialStatusArr[marial_status as number]
   }`;
@@ -196,16 +204,56 @@ const load = async (req: Request, res: Response) => {
       "\n" + item.user_question_id.content + "\n" + item.content;
   });
 
-  // const goalAnswer = await Goal.find({ user_id: userId })
-  //   .populate<{ goal_question_id: IUserQuestion }>("goal_question_id")
-  //   .exec();
-  // goalAnswer.forEach((item, index) => {
-  //   startUserMessage +=
-  //     "\n" + item.goal_question_id.content + "\n" + item.content;
-  // });
+  startUserMessage += "\nThese are my goals and information of the goals\n";
 
-  await chatBot(startUserMessage);
-  res.status(200).send({ message: "Loading success!" });
+  const goalAnswers = await Goal.aggregate([
+    {
+      $lookup: {
+        from: "goal_answers",
+        localField: "_id",
+        foreignField: "goal_id",
+        as: "answers_per_goal",
+        pipeline: [
+          {
+            $lookup: {
+              from: "goal_questions",
+              localField: "goal_question_id",
+              foreignField: "_id",
+              as: "goal_question",
+            },
+          },
+        ],
+      },
+    },
+    { $match: { user_id: new mongoose.Types.ObjectId(userId) } },
+  ]);
+
+  goalAnswers.forEach((goal, index) => {
+    startUserMessage += `${index + 1}. ${goal.content}\n`;
+    goal.answers_per_goal.forEach((answer: any, answerIndex: number) => {
+      startUserMessage += `${answerIndex + 1}) ${
+        answer.goal_question[0].content
+      }\n ${answer.content}\n`;
+    });
+  });
+  const statrtMessages: ChatCompletionMessageParam[] = [
+    { role: "user", content: startUserMessage },
+  ];
+  const aiStartMessage = (await chatBot(statrtMessages)) as string;
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "user", content: startUserMessage },
+    { role: "assistant", content: aiStartMessage },
+  ];
+  // req.session.messages = messages;
+  storeMessagesPerUser(userId, messages);
+  console.log("loading success============================>\n", statrtMessages);
+  res.status(200).send({ message: "Loading Success!" });
 };
 
-export default { signup, signin, getUser, load };
+export const logout = (req: Request, res: Response) => {
+  const userId = req.body.userId;
+  deleteMessagesPerUser(userId);
+  res.status(200).send({ message: "logout success!" });
+};
+
+export default { signup, signin, getUser, logout, load };

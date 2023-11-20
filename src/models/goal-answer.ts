@@ -1,7 +1,11 @@
 import { Schema, model } from "mongoose";
-import { IGoalAnswer } from "./schema-types";
+import { IGoalAnswer } from "../types/schema";
 
 const goalAnswerSchema = new Schema<IGoalAnswer>({
+  user_id: {
+    ref: "User",
+    type: Schema.Types.ObjectId,
+  },
   goal_id: {
     type: Schema.Types.ObjectId,
     ref: "Goal",

@@ -6,9 +6,9 @@ dotenv.config();
 import UserQestion from "./models/user-question";
 import GoalQestion from "./models/goal-question";
 import Domain from "./models/domain";
-
+import { getMongoUri } from "./util";
 // const uri = process.env.ATLAS_URI;
-const uri = "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority"
+const uri = getMongoUri();
 
 const connectDB = async () => {
   if (uri) {
@@ -30,59 +30,47 @@ const seedingUserQuestions = [
   { content: "How do you prefer to spend your free time?" },
   { content: "What does a typical day look like for you?" },
   {
-  
     content: "What are your favorite forms of exercise or physical activity?",
   },
   {
-  
     content: "How would you describe your current eating habits?",
   },
   {
-  
     content: "What is your preferred way to de-stress and relax?",
   },
   {
-  
     content: "How do you approach time management and organization?",
   },
   {
-  
     content:
       "What kind of social support or relationships do you have in your life?",
   },
   {
-  
     content: "How do you currently approach your personal finances?",
   },
   { content: "What are your favorite hobbies or interests?" },
   {
-  
     content:
       "Do you have any preferred learning methods or topics of interest?",
   },
   { content: "What is one challenge you're currently facing?" },
   { content: "What motivates you to pursue your goals?" },
   {
-  
     content:
       "Do you have any preferred travel destinations or cultural experiences?",
   },
   {
-  
     content: "How do you prioritize health and wellness in your life?",
   },
   {
-  
     content: "Is there a specific skill or habit you're trying to develop?",
   },
   { content: "How important is work-life balance to you?" },
   {
-  
     content:
       "Do you have any specific values or principles that guide your decisions?",
   },
   {
-  
     content:
       "What is something you wish to improve or change about your current lifestyle?",
   },
@@ -93,59 +81,47 @@ const seedingGoalQuestions = [
   { content: "How do you prefer to spend your free time?" },
   { content: "What does a typical day look like for you?" },
   {
-  
     content: "What are your favorite forms of exercise or physical activity?",
   },
   {
-  
     content: "How would you describe your current eating habits?",
   },
   {
-  
     content: "What is your preferred way to de-stress and relax?",
   },
   {
-  
     content: "How do you approach time management and organization?",
   },
   {
-  
     content:
       "What kind of social support or relationships do you have in your life?",
   },
   {
-  
     content: "How do you currently approach your personal finances?",
   },
   { content: "What are your favorite hobbies or interests?" },
   {
-  
     content:
       "Do you have any preferred learning methods or topics of interest?",
   },
   { content: "What is one challenge you're currently facing?" },
   { content: "What motivates you to pursue your goals?" },
   {
-  
     content:
       "Do you have any preferred travel destinations or cultural experiences?",
   },
   {
-  
     content: "How do you prioritize health and wellness in your life?",
   },
   {
-  
     content: "Is there a specific skill or habit you're trying to develop?",
   },
   { content: "How important is work-life balance to you?" },
   {
-  
     content:
       "Do you have any specific values or principles that guide your decisions?",
   },
   {
-  
     content:
       "What is something you wish to improve or change about your current lifestyle?",
   },

@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IDomain } from "./schema-types";
+import { IDomain } from "../types/schema";
 
 const domainSchema = new Schema<IDomain>(
   {
@@ -8,14 +8,14 @@ const domainSchema = new Schema<IDomain>(
       required: true,
     },
   },
-  { toJSON: { virtuals: true } }
+  // { toJSON: { virtuals: true } }
 );
 
-domainSchema.virtual("goals", {
-  ref: "Goal",
-  localField: "_id",
-  foreignField: "domain_id",
-  justOne: false, // set true for one-to-one relationship
-});
+// domainSchema.virtual("goals", {
+//   ref: "Goal",
+//   localField: "_id",
+//   foreignField: "domain_id",
+//   justOne: false, // set true for one-to-one relationship
+// });
 
 export default model<IDomain>("Domain", domainSchema);
