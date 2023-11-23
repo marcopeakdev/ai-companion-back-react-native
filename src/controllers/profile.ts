@@ -38,7 +38,7 @@ const setTipInterval = async (req: Request, res: Response) => {
 const setGoal = async (req: Request, res: Response) => {
   const { goalContent, userId } = req.body;
   const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
-  const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${content}`;
+  const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${goalContent}`;
   messages?.push({
     role: "user",
     content: tipPrompt,
