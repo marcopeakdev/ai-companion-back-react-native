@@ -34,7 +34,6 @@ export interface IGoalQuestion {
 
 export interface IGoal {
   user_id: Types.ObjectId;
-  domain_id: Types.ObjectId;
   content: String;
   tips: String;
   progress: Number;
@@ -66,5 +65,10 @@ export interface IUser {
   goal_question_id: Types.ObjectId;
   goal_tip_id: Types.ObjectId;
   tip_number: Number;
+  health: Number;
+  income: Number;
+  family: Number;
+  romantic: Number;
+  happiness: Number;
   _id: Types.ObjectId;
 }

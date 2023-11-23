@@ -91,6 +91,26 @@ const userSchema = new Schema<IUser>({
     type: Number,
     default: 0,
   },
+  health: {
+    type: Number,
+    default: 0
+  },
+  income: {
+    type: Number,
+    default: 0
+  },
+  family: {
+    type: Number,
+    default: 0
+  },
+  romantic: {
+    type: Number,
+    default: 0
+  },
+  happiness: {
+    type: Number,
+    default: 0
+  },
 });
 
 export default model<IUser>("User", userSchema);

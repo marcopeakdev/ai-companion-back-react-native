@@ -29,7 +29,11 @@ const signup = async (req: Request, res: Response) => {
     weight,
     gender,
     marial_status,
-    children,
+    health,
+    income,
+    family,
+    romantic,
+    happiness,
   } = req.body;
   const user = await User.findOne({ email });
   if (!name) {
@@ -72,6 +76,11 @@ const signup = async (req: Request, res: Response) => {
     marial_status,
     user_question_id: userQuestions[0]?._id,
     goal_question_id: goalQuestions[0]?._id,
+    health,
+    income,
+    family,
+    romantic,
+    happiness
   };
 
   // Crypt the password
@@ -79,13 +88,14 @@ const signup = async (req: Request, res: Response) => {
   userInfo.password = await bcrypt.hash(password, salt);
   // Create the user
   const newUser = await User.create(userInfo);
-  //errors = {};
+  //progress of the doamin is stored initially between 1-10;
+
   return res.status(200).send(newUser);
 };
 
 const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log(email, password, "jwtsecret->", process.env.JWT_SECRET);
+  console.log(email, password, "jwtsecret->", getJwtSecret());
 
   // Find the user
   const user = await User.findOne({ email });
@@ -111,6 +121,11 @@ const signin = async (req: Request, res: Response) => {
     marial_status,
     question_display_interval,
     tip_display_interval,
+    health,
+    income,
+    family,
+    romantic,
+    happiness,
   } = user;
   // In jwt.sign set the data that you want to get
   // const jwtsecret = process.env.JWT_SECRET;
@@ -246,7 +261,7 @@ const load = async (req: Request, res: Response) => {
   ];
   // req.session.messages = messages;
   storeMessagesPerUser(userId, messages);
-  console.log("loading success============================>\n", statrtMessages);
+  console.log("loading success============================>\n", messages);
   res.status(200).send({ message: "Loading Success!" });
 };
 

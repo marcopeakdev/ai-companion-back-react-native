@@ -35,20 +35,8 @@ const setTipInterval = async (req: Request, res: Response) => {
   res.status(200).send({ message: "Update success" });
 };
 
-const getDomain = async (req: Request, res: Response) => {
-  const domains = await Domain.find({});
-  res.status(200).send(domains);
-};
-
-const getGoal = async (req: Request, res: Response) => {
-  const goals = await Goal.find({ user_id: req.body.userId })
-    .populate("domain_id")
-    .exec();
-  res.status(200).send(goals);
-};
-
 const setGoal = async (req: Request, res: Response) => {
-  const { domain, content, userId } = req.body;
+  const { goalContent, userId } = req.body;
   const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
   const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${content}`;
   messages?.push({
@@ -58,8 +46,7 @@ const setGoal = async (req: Request, res: Response) => {
   const tips = await chatBot(messages);
   const goalRow = new Goal({
     user_id: userId,
-    content,
-    domain_id: domain,
+    goalContent,
     tips,
   });
 
@@ -83,6 +70,28 @@ const setGoal = async (req: Request, res: Response) => {
 const saveGoalProgress = async (req: Request, res: Response) => {
   const { goalId, progress } = req.body;
   await Goal.findOneAndUpdate({ _id: goalId }, { progress });
+  res.status(200).send({ message: "progress updating success!" });
+};
+
+const saveDomainProgress = async (req: Request, res: Response) => {
+  const { userId, domain, progress } = req.body;
+  switch (domain) {
+    case "health":
+      await User.findOneAndUpdate({ _id: userId }, { health: progress });
+      break;
+    case "income":
+      await User.findOneAndUpdate({ _id: userId }, { income: progress });
+      break;
+    case "family":
+      await User.findOneAndUpdate({ _id: userId }, { family: progress });
+      break;
+    case "romantic":
+      await User.findOneAndUpdate({ _id: userId }, { romantic: progress });
+      break;
+    default:
+      await User.findOneAndUpdate({ _id: userId }, { happiness: progress });
+      break;
+  }
   res.status(200).send({ message: "progress updating success!" });
 };
 
@@ -247,11 +256,10 @@ const updateTipsDate = async (req: Request, res: Response) => {
 export default {
   setQuestionInterval,
   setTipInterval,
-  getDomain,
   setGoal,
-  getGoal,
   deleteGoal,
   saveGoalProgress,
+  saveDomainProgress,
   getProgress,
   getTips,
   updateTipsDate,
