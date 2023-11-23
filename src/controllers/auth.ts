@@ -80,7 +80,7 @@ const signup = async (req: Request, res: Response) => {
     income,
     family,
     romantic,
-    happiness
+    happiness,
   };
 
   // Crypt the password
@@ -150,6 +150,11 @@ const signin = async (req: Request, res: Response) => {
       marial_status,
       question_display_interval,
       tip_display_interval,
+      health,
+      income,
+      family,
+      romantic,
+      happiness,
     },
   });
 };
@@ -179,6 +184,11 @@ const getUser = (req: Request, res: Response) => {
       marial_status,
       question_display_interval,
       tip_display_interval,
+      health,
+      income,
+      family,
+      romantic,
+      happiness,
     } = userInfo;
     res.status(200).send({
       user: {
@@ -192,6 +202,11 @@ const getUser = (req: Request, res: Response) => {
         marial_status,
         question_display_interval,
         tip_display_interval,
+        health,
+        income,
+        family,
+        romantic,
+        happiness,
       },
     });
   });
