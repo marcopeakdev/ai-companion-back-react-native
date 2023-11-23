@@ -19,7 +19,6 @@ import { chatBot } from "../chat";
 import { ChatCompletionMessageParam } from "openai/resources";
 
 const signup = async (req: Request, res: Response) => {
-  console.log("signup", req.body);
   const {
     name,
     email,
@@ -82,7 +81,8 @@ const signup = async (req: Request, res: Response) => {
     romantic,
     happiness,
   };
-
+  
+  console.log("userInfo=====?1111", req.body);
   // Crypt the password
   const salt = await bcrypt.genSalt(10);
   userInfo.password = await bcrypt.hash(password, salt);
