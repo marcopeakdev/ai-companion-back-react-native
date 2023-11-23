@@ -87,6 +87,7 @@ const signup = async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10);
   userInfo.password = await bcrypt.hash(password, salt);
   // Create the user
+  console.log("userInfo=====>", userInfo)
   const newUser = await User.create(userInfo);
   //progress of the doamin is stored initially between 1-10;
 
