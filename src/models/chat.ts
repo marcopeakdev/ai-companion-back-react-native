@@ -12,6 +12,10 @@ const chatSchema = new Schema<IChat>({
   ai_message: {
     type: String,
   },
+  is_train: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default model<IChat>("Chat", chatSchema);

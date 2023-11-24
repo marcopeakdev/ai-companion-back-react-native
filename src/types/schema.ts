@@ -9,6 +9,7 @@ export interface IChat {
   user_id: Types.ObjectId;
   user_message: string;
   ai_message?: String;
+  is_train?: boolean;
 }
 
 export interface IChildren {
@@ -37,6 +38,7 @@ export interface IGoal {
   content: String;
   tips: String;
   progress: Number;
+  is_pin: boolean;
 }
 
 export interface IUserAnswer {
@@ -71,4 +73,5 @@ export interface IUser {
   romantic: Number;
   happiness: Number;
   _id: Types.ObjectId;
+  pin_count: Number;
 }

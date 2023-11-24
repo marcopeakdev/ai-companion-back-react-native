@@ -111,6 +111,10 @@ const userSchema = new Schema<IUser>({
     type: Number,
     default: 0
   },
+  pin_count: {
+    type: Number,
+    default: 0
+  },
 });
 
 export default model<IUser>("User", userSchema);

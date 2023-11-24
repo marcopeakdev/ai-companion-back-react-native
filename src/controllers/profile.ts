@@ -14,6 +14,14 @@ import UserAnswer from "../models/user-answer";
 import { IUserQuestion, IGoal } from "../types/schema";
 import GoalAnswer from "../models/goal-answer";
 import { chatBot } from "../chat";
+import goal from "../models/goal";
+
+const getGoals = async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  console.log("getgoalse=======================>", userId);
+  const goals = await Goal.find({ user_id: userId });
+  res.status(200).send(goals);
+};
 
 const setQuestionInterval = async (req: Request, res: Response) => {
   const { email, questionDisplayInterval } = req.body;
@@ -46,7 +54,8 @@ const setGoal = async (req: Request, res: Response) => {
   const tips = await chatBot(messages);
   const goalRow = new Goal({
     user_id: userId,
-    goalContent,
+    content: goalContent,
+    is_pin: false,
     tips,
   });
 
@@ -63,14 +72,13 @@ const setGoal = async (req: Request, res: Response) => {
       }
     );
   }
-
   res.status(200).send({ message: "goal saving success!" });
 };
 
 const saveGoalProgress = async (req: Request, res: Response) => {
   const { goalId, progress } = req.body;
   await Goal.findOneAndUpdate({ _id: goalId }, { progress });
-  res.status(200).send({ message: "progress updating success!" });
+  res.status(200).send({ message: "goal progress updating success!" });
 };
 
 const saveDomainProgress = async (req: Request, res: Response) => {
@@ -92,12 +100,27 @@ const saveDomainProgress = async (req: Request, res: Response) => {
       await User.findOneAndUpdate({ _id: userId }, { happiness: progress });
       break;
   }
-  res.status(200).send({ message: "progress updating success!" });
+  res.status(200).send({ message: "domain progress updating success!" });
+};
+
+const pinGoal = async (req: Request, res: Response) => {
+  const { userId, goalId, isPin } = req.body;
+  await Goal.findOneAndUpdate({ _id: goalId }, { is_pin: isPin });
+  if (isPin) {
+    await User.findOneAndUpdate({ _id: userId }, { $inc: { pin_count: 1 } });
+  } else {
+    await User.findOneAndUpdate({ _id: userId }, { $inc: { pin_count: -1 } });
+  }
+  res.status(200).send({ message: "Pin update success!" });
 };
 
 const deleteGoal = async (req: Request, res: Response) => {
   const userId = req.body.userId;
   const deletingGoalId = req.query.id;
+  const deletingGoal = await Goal.findById(deletingGoalId);
+  if (deletingGoal?.is_pin) {
+    await User.findOneAndUpdate({ _id: userId }, { $inc: { pin_count: -1 } });
+  }
   //update goal_id and goal_tip_id to display questions and tips
   await Promise.all([
     Goal.deleteOne({ _id: deletingGoalId }),
@@ -144,26 +167,9 @@ const deleteGoal = async (req: Request, res: Response) => {
 const getProgress = async (req: Request, res: Response) => {
   const userId = req.body.userId;
   // get average progress number of 5 domain per every user
-  const domains = await Domain.aggregate([
-    {
-      $lookup: {
-        from: "goals",
-        localField: "_id",
-        foreignField: "domain_id",
-        pipeline: [
-          { $match: { user_id: new mongoose.Types.ObjectId(userId) } },
-        ],
-        as: "goals",
-      },
-    },
-    {
-      $addFields: {
-        avg_progress: { $avg: "$goals.progress" },
-      },
-    },
-  ]);
+  const progresses = await Goal.find({ user_id: userId, is_pin: true });
 
-  res.json({ domains });
+  res.status(200).send(progresses);
 };
 
 const getTips = async (req: Request, res: Response) => {
@@ -257,6 +263,8 @@ export default {
   setQuestionInterval,
   setTipInterval,
   setGoal,
+  getGoals,
+  pinGoal,
   deleteGoal,
   saveGoalProgress,
   saveDomainProgress,

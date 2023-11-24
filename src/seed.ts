@@ -76,7 +76,6 @@ const seedingUserQuestions = [
   },
 ];
 const seedingGoalQuestions = [
-  { content: "Which level of this goal are you in 1-10?" },
   { content: "What is your current occupation?" },
   { content: "How do you prefer to spend your free time?" },
   { content: "What does a typical day look like for you?" },

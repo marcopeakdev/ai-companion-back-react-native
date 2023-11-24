@@ -8,7 +8,7 @@ import User from "../models/user";
 import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
 import GoalQuestion from "../models/goal-question";
-import GoalAnswer from "../models/goal-answer";
+import Chat from "../models/chat";
 import Goal from "../models/goal";
 import {
   deleteMessagesPerUser,
@@ -81,13 +81,13 @@ const signup = async (req: Request, res: Response) => {
     romantic,
     happiness,
   };
-  
+
   console.log("userInfo=====?1111", req.body);
   // Crypt the password
   const salt = await bcrypt.genSalt(10);
   userInfo.password = await bcrypt.hash(password, salt);
   // Create the user
-  console.log("userInfo=====>", userInfo)
+  console.log("userInfo=====>", userInfo);
   const newUser = await User.create(userInfo);
   //progress of the doamin is stored initially between 1-10;
 
@@ -127,6 +127,7 @@ const signin = async (req: Request, res: Response) => {
     family,
     romantic,
     happiness,
+    pin_count,
   } = user;
   // In jwt.sign set the data that you want to get
   // const jwtsecret = process.env.JWT_SECRET;
@@ -156,6 +157,7 @@ const signin = async (req: Request, res: Response) => {
       family,
       romantic,
       happiness,
+      pin_count,
     },
   });
 };
@@ -190,6 +192,7 @@ const getUser = (req: Request, res: Response) => {
       family,
       romantic,
       happiness,
+      pin_count,
     } = userInfo;
     res.status(200).send({
       user: {
@@ -208,6 +211,7 @@ const getUser = (req: Request, res: Response) => {
         family,
         romantic,
         happiness,
+        pin_count,
       },
     });
   });
@@ -270,11 +274,17 @@ const load = async (req: Request, res: Response) => {
   const statrtMessages: ChatCompletionMessageParam[] = [
     { role: "user", content: startUserMessage },
   ];
+
+  
   const aiStartMessage = (await chatBot(statrtMessages)) as string;
   const messages: ChatCompletionMessageParam[] = [
     { role: "user", content: startUserMessage },
     { role: "assistant", content: aiStartMessage },
   ];
+  const chatMessages = await Chat.find({ user_id: userId, is_train: true });
+  chatMessages.forEach((item, index) => {
+    messages.push({ role: "user", content: item.user_message });
+  });
   // req.session.messages = messages;
   storeMessagesPerUser(userId, messages);
   console.log("loading success============================>\n", messages);

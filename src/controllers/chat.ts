@@ -11,7 +11,7 @@ const getMessages = async (req: Request, res: Response) => {
 };
 
 const sendMessage = async (req: Request, res: Response) => {
-  const { userId, userMessage } = req.body;
+  const { userId, userMessage, isTrain } = req.body;
   const messages = getMessagesPerUser(userId);
   messages?.push({
     role: "user",
@@ -27,6 +27,7 @@ const sendMessage = async (req: Request, res: Response) => {
     user_id: userId,
     user_message: userMessage,
     ai_message: aiMessage,
+    is_train: isTrain,
   };
 
   await Chat.create(chatRow);
