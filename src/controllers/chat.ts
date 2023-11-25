@@ -1,4 +1,3 @@
-import { ChatCompletionMessageParam } from "openai/resources";
 import { Request, Response } from "express";
 import Chat from "../models/chat";
 import { chatBot } from "../chat";

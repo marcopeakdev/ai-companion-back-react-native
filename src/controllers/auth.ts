@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 
-import { IUser, IUserQuestion, IGoalQuestion } from "../types/schema";
+import { IUser, IUserQuestion } from "../types/schema";
 import User from "../models/user";
 import UserQuestion from "../models/user-question";
 import UserAnswer from "../models/user-answer";
@@ -82,12 +82,10 @@ const signup = async (req: Request, res: Response) => {
     happiness,
   };
 
-  console.log("userInfo=====?1111", req.body);
   // Crypt the password
   const salt = await bcrypt.genSalt(10);
   userInfo.password = await bcrypt.hash(password, salt);
   // Create the user
-  console.log("userInfo=====>", userInfo);
   const newUser = await User.create(userInfo);
   //progress of the doamin is stored initially between 1-10;
 
@@ -96,7 +94,6 @@ const signup = async (req: Request, res: Response) => {
 
 const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log(email, password, "jwtsecret->", getJwtSecret());
 
   // Find the user
   const user = await User.findOne({ email });
@@ -133,7 +130,6 @@ const signin = async (req: Request, res: Response) => {
   // const jwtsecret = process.env.JWT_SECRET;
   const jwtsecret = getJwtSecret();
   if (!jwtsecret) {
-    console.log("jwtsecret is empty");
     return;
   }
 
@@ -171,7 +167,6 @@ const getUser = (req: Request, res: Response) => {
     return res.status(400).send({ message: "UserId is required" });
   }
   jwt.verify(token, secret, async (err: any, decodedId: any) => {
-    console.log("decodedId", decodedId);
     const userInfo = await User.findById(decodedId.id);
     if (!userInfo) {
       return res.status(400).send({ message: "User is not exist" });
@@ -287,7 +282,6 @@ const load = async (req: Request, res: Response) => {
   });
   // req.session.messages = messages;
   storeMessagesPerUser(userId, messages);
-  console.log("loading success============================>\n", messages);
   res.status(200).send({ message: "Loading Success!" });
 };
 

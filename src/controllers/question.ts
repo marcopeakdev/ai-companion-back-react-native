@@ -7,7 +7,7 @@ import Goal from "../models/goal";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
 import User from "../models/user";
-import { IUserQuestion, IGoalQuestion, IGoal } from "../types/schema";
+import { IUserQuestion, IGoalQuestion } from "../types/schema";
 import { getTipCount } from "../util";
 import { chatBot } from "../chat";
 
@@ -55,12 +55,10 @@ const saveUserAnswer = async (req: Request, res: Response) => {
   const { userId, isSkipUserAnswer, userAnswer, userQuestionId } = req.body;
 
   if (!isSkipUserAnswer) {
-    console.log("existUseranswer->", "existUserAnswer");
     const existUserAnswer = await UserAnswer.find({
       user_id: userId,
       user_question_id: userQuestionId,
     });
-    console.log("existUseranswer->", existUserAnswer);
     if (existUserAnswer.length !== 0) {
       await UserAnswer.findOneAndUpdate(
         { user_id: userId, user_question_id: userQuestionId },
@@ -72,7 +70,6 @@ const saveUserAnswer = async (req: Request, res: Response) => {
         user_question_id: userQuestionId,
         content: userAnswer,
       };
-      console.log("savingUserAnswerRow>", savingUserAnswerRow);
       await UserAnswer.create(savingUserAnswerRow);
     }
   }
@@ -103,7 +100,6 @@ const saveUserAnswer = async (req: Request, res: Response) => {
 const saveGoalAnswer = async (req: Request, res: Response) => {
   const { userId, isSkipGoalAnswer, goalId, goalAnswer, goalQuestionId } =
     req.body;
-  console.log(req.body);
   if (!isSkipGoalAnswer) {
     const existGoalAnswer = await GoalAnswer.find({
       goal_id: goalId,
@@ -164,7 +160,6 @@ const saveGoalAnswer = async (req: Request, res: Response) => {
 
 const updateQuestionDisplayDate = async (req: Request, res: Response) => {
   const userId = req.body.userId;
-  console.log("userId", userId);
   // when the question is displayed every day, update questiondisplaydate
   const newQuestionDisplayDate = new Date(
     +new Date() + (2 * 24 + 1) * 60 * 60 * 1000
@@ -201,7 +196,6 @@ const updateTips = async (req: Request, res: Response) => {
   goalAnswers.forEach((item) => {
     tipPrompt += item.goal_question_id?.content + " " + item.content + "\n ";
   });
-  console.log("=>>>>", tipPrompt);
   const tipgeneratingMessages: ChatCompletionMessageParam[] = [
     { role: "user", content: tipPrompt },
   ];

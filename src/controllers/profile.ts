@@ -1,6 +1,4 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
-import { ChatCompletionMessageParam } from "openai/resources";
 
 import {
   getTipCount,
@@ -8,17 +6,13 @@ import {
   getMessagesPerUser,
 } from "../util";
 import User from "../models/user";
-import Domain from "../models/domain";
 import Goal from "../models/goal";
-import UserAnswer from "../models/user-answer";
-import { IUserQuestion, IGoal } from "../types/schema";
+import { IGoal } from "../types/schema";
 import GoalAnswer from "../models/goal-answer";
 import { chatBot } from "../chat";
-import goal from "../models/goal";
 
 const getGoals = async (req: Request, res: Response) => {
   const { userId } = req.body;
-  console.log("getgoalse=======================>", userId);
   const goals = await Goal.find({ user_id: userId });
   res.status(200).send(goals);
 };
@@ -237,7 +231,6 @@ const updateTipsDate = async (req: Request, res: Response) => {
       const nextGoal = await Goal.find({ _id: { $gt: currentGoalId } })
         .sort({ _id: 1 })
         .limit(1);
-      console.log("nextGoal->", nextGoal);
       if (nextGoal.length !== 0) {
         newGoalId = nextGoal[0]._id;
       } else {
