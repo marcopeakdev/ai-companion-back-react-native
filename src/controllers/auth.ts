@@ -275,7 +275,10 @@ const load = async (req: Request, res: Response) => {
     { role: "user", content: startUserMessage },
     { role: "assistant", content: aiStartMessage },
   ];
-  const chatMessages = await Chat.find({ user_id: userId, is_train: true });
+  const chatMessages = await Chat.find({
+    user_id: userId,
+    is_train: true,
+  }).limit(1000);
   chatMessages.forEach((item, index) => {
     messages.push({ role: "user", content: item.user_message });
   });
