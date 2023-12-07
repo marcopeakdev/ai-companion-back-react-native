@@ -7,6 +7,7 @@ import Goal from "../models/goal";
 import GoalQuestion from "../models/goal-question";
 import GoalAnswer from "../models/goal-answer";
 import User from "../models/user";
+import Feedback from "../models/feedback";
 import { IUserQuestion, IGoalQuestion } from "../types/schema";
 import { getTipCount } from "../util";
 import { chatBot } from "../chat";
@@ -22,12 +23,14 @@ const getQestions = async (req: Request, res: Response) => {
   const today = new Date();
   const todayDate = today.getDate();
   const todayDay = today.getDay();
-  const questionDisplayDate = questions?.question_display_date.getDate()
-    ? questions?.question_display_date.getDate()
-    : 0;
+  const questionDisplayDateMiliseconds =
+    questions?.question_display_date.getTime()
+      ? questions?.question_display_date.getTime()
+      : 0;
   switch (questions?.question_display_interval) {
     case 0: // 0: ask a question A day
-      if (questionDisplayDate * 1 <= 1 + todayDate) {
+      const todayMiliseconds = today.getTime();
+      if (questionDisplayDateMiliseconds * 1 <= 86400000 + todayMiliseconds) {
         return res.status(200).send(questions);
       }
       res.status(200).send({ message: "no" });
@@ -204,10 +207,19 @@ const updateTips = async (req: Request, res: Response) => {
   res.status(200).send({ message: "tip update success!" });
 };
 
+const saveFeedback = async (req: Request, res: Response) => {
+  const { userId, content } = req.body;
+  console.log("userId---->", userId, req.body);
+  const feedbackRow = { user_id: userId, content };
+  await Feedback.create(feedbackRow);
+  res.status(200).send({ msg: "success!" });
+};
+
 export default {
   getQestions,
   saveUserAnswer,
   saveGoalAnswer,
   updateQuestionDisplayDate,
   updateTips,
+  saveFeedback,
 };

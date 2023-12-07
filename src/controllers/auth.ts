@@ -14,6 +14,7 @@ import {
   deleteMessagesPerUser,
   getJwtSecret,
   storeMessagesPerUser,
+  generateFourRandomNumber,
 } from "../util";
 import { chatBot } from "../chat";
 import { ChatCompletionMessageParam } from "openai/resources";
@@ -94,7 +95,6 @@ const signup = async (req: Request, res: Response) => {
 
 const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
   // Find the user
   const user = await User.findOne({ email });
   if (!user) {
@@ -270,7 +270,6 @@ const load = async (req: Request, res: Response) => {
     { role: "user", content: startUserMessage },
   ];
 
-  
   const aiStartMessage = (await chatBot(statrtMessages)) as string;
   const messages: ChatCompletionMessageParam[] = [
     { role: "user", content: startUserMessage },
@@ -285,10 +284,56 @@ const load = async (req: Request, res: Response) => {
   res.status(200).send({ message: "Loading Success!" });
 };
 
-export const logout = (req: Request, res: Response) => {
+const logout = (req: Request, res: Response) => {
   const userId = req.body.userId;
   deleteMessagesPerUser(userId);
   res.status(200).send({ message: "logout success!" });
 };
 
-export default { signup, signin, getUser, logout, load };
+const sendCode = async (req: Request, res: Response) => {
+  // Example: Generate a random number between 1000 and 9999
+  const code = generateFourRandomNumber(1000, 9999);
+  await User.findOneAndUpdate({ email: req.body.email }, { code });
+  res.status(200).send({ msg: "success!" });
+};
+
+const confirmCode = async (req: Request, res: Response) => {
+  // Example: Generate a random number between 1000 and 9999
+  const user = await User.findOne({ email: req.body.email });
+  console.log("usercode", user?.code);
+  if (user?.code === req.body.code * 1) {
+    res.status(200).send({ confirm: true });
+  } else {
+    res.status(200).send({ confirm: false });
+  }
+};
+
+const formatCode = async (req: Request, res: Response) => {
+  console.log("email====>", req.body.email);
+  // Example: Generate a random number between 1000 and 9999
+  await User.updateOne({ email: req.body.email }, { $unset: { code: 1 } });
+  res.status(200).send({ msg: "format success!" });
+};
+
+const resetPassword = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(password, salt);
+  await User.findOneAndUpdate(
+    { email: req.body.email },
+    { password: hashPassword, $unset: { code: 1 } }
+  );
+  res.status(200).send({ msg: "reset pwd success!" });
+};
+
+export default {
+  signup,
+  signin,
+  getUser,
+  logout,
+  load,
+  sendCode,
+  confirmCode,
+  formatCode,
+  resetPassword,
+};

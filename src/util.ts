@@ -53,3 +53,11 @@ export const getMessagesPerUser = (key: string) => {
 export const deleteMessagesPerUser = (key: string) => {
   delete chatMessagesPerUser[key];
 };
+
+export const generateFourRandomNumber = (min: number, max: number) => {
+  // Use Math.random() to generate a random decimal between 0 and 1
+  const randomDecimal = Math.random();
+  // Scale and shift the random decimal to the desired range
+  const randomInteger = Math.floor(randomDecimal * (max - min + 1)) + min;
+  return randomInteger;
+};

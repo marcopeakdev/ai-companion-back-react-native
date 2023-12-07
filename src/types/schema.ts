@@ -47,6 +47,11 @@ export interface IUserAnswer {
   content: String;
 }
 
+export interface IFeedback {
+  user_id: Types.ObjectId;
+  content: String;
+}
+
 export interface IUser {
   name: String;
   email: String;
@@ -74,4 +79,5 @@ export interface IUser {
   happiness: Number;
   _id: Types.ObjectId;
   pin_count: Number;
+  code: Number;
 }

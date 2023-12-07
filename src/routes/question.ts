@@ -9,5 +9,6 @@ router.post("/user-question-answer", authMiddleware.ensureLogin, questionControl
 router.post("/goal-question-answer", authMiddleware.ensureLogin, questionController.saveGoalAnswer);
 router.patch("/question-date", authMiddleware.ensureLogin, questionController.updateQuestionDisplayDate);
 router.patch("/tips", authMiddleware.ensureLogin, questionController.updateTips);
+router.post("/feedback", authMiddleware.ensureLogin, questionController.saveFeedback);
 
 export default router;  
