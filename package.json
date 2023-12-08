@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
     "morgan": "^1.10.0",
-    "openai": "^4.17.4"
+    "openai": "^4.17.4",
+    "postmark": "^4.0.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.1",

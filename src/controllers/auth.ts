@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
+import { ServerClient } from "postmark";
 
 import { IUser, IUserQuestion } from "../types/schema";
 import User from "../models/user";
@@ -15,6 +16,7 @@ import {
   getJwtSecret,
   storeMessagesPerUser,
   generateFourRandomNumber,
+  getPostMarkKey,
 } from "../util";
 import { chatBot } from "../chat";
 import { ChatCompletionMessageParam } from "openai/resources";
@@ -89,8 +91,35 @@ const signup = async (req: Request, res: Response) => {
   // Create the user
   const newUser = await User.create(userInfo);
   //progress of the doamin is stored initially between 1-10;
+  const { id } = newUser;
+  const jwtsecret = getJwtSecret();
+  if (!jwtsecret) {
+    return;
+  }
 
-  return res.status(200).send(newUser);
+  const token = await jwt.sign({ id }, jwtsecret);
+  res.status(200).send({
+    message: "login success",
+    token,
+    user: {
+      name: newUser.name,
+      avatar: newUser.avatar,
+      age: newUser.age,
+      userEmail: newUser.email,
+      height: newUser.height,
+      weight: newUser.weight,
+      gender: newUser.gender,
+      marial_status: newUser.marial_status,
+      question_display_interval: newUser.question_display_interval,
+      tip_display_interval: newUser.tip_display_interval,
+      health: newUser.health,
+      income: newUser.income,
+      family: newUser.family,
+      romantic: newUser.romantic,
+      happiness: newUser.happiness,
+      pin_count: newUser.pin_count,
+    },
+  });
 };
 
 const signin = async (req: Request, res: Response) => {
@@ -296,7 +325,19 @@ const logout = (req: Request, res: Response) => {
 const sendCode = async (req: Request, res: Response) => {
   // Example: Generate a random number between 1000 and 9999
   const code = generateFourRandomNumber(1000, 9999);
-  await User.findOneAndUpdate({ email: req.body.email }, { code });
+  const user = await User.findOneAndUpdate({ email: req.body.email }, { code });
+  // Send an email:
+  let client = new ServerClient(getPostMarkKey());
+
+  // client.sendEmail({
+  //   From: "neil@sunnycoastmedia.com.au",
+  //   To: "peakgenius226@gmail.com",
+  //   Subject: "Hello from Postmark",
+  //   HtmlBody: "<strong>Hello</strong> dear Postmark user.",
+  //   TextBody: code.toString(),
+  //   MessageStream: "outbound",
+  // });
+
   res.status(200).send({ msg: "success!" });
 };
 

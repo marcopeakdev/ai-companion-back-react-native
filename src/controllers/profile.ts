@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ChatCompletionMessageParam } from "openai/resources";
 
 import {
   getTipCount,
@@ -39,25 +40,32 @@ const setTipInterval = async (req: Request, res: Response) => {
 
 const setGoal = async (req: Request, res: Response) => {
   const { goalContent, userId } = req.body;
-  const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
+  // const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
   const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${goalContent}`;
-  messages?.push({
-    role: "user",
-    content: tipPrompt,
-  });
-  const tips = await chatBot(messages);
-  const goalRow = new Goal({
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: "user",
+      content: tipPrompt,
+    },
+  ];
+  console.log("before tip")
+  const promises = await Promise.all([
+    chatBot(messages),
+    Goal.find({ user_id: userId }),
+  ]);
+  console.log("tips")
+  const goalRow = {
     user_id: userId,
     content: goalContent,
     is_pin: false,
-    tips,
-  });
-
-  const goal = await goalRow.save();
-  const goals = await Goal.find({ user_id: userId });
+    tips: promises[0],
+  };
+  
+  const goal = await Goal.create(goalRow);
+  console.log("after tips saving")
   const goalId = goal._id;
   //To ask questions of goal, point which goal.
-  if (goals.length === 1) {
+  if (promises[1].length === 0) {
     await User.findOneAndUpdate(
       { _id: userId },
       {
@@ -252,6 +260,16 @@ const updateTipsDate = async (req: Request, res: Response) => {
   res.status(200).send({ message: "Success tip date updating!" });
 };
 
+const updatePersonal = async (req: Request, res: Response) => {
+  const { userId, name, age, height, weight, gender, marial_status } = req.body;
+  console.log(userId, name, age, height, weight, gender, marial_status);
+  await User.findByIdAndUpdate(
+    { _id: userId },
+    { name, age, height, weight, gender, marial_status }
+  );
+  res.status(200).send({ msg: "updating success!" });
+};
+
 export default {
   setQuestionInterval,
   setTipInterval,
@@ -264,4 +282,5 @@ export default {
   getProgress,
   getTips,
   updateTipsDate,
+  updatePersonal,
 };

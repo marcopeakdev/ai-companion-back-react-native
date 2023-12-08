@@ -10,6 +10,10 @@ export const getOpenAiKey = () => {
   return "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";
 };
 
+export const getPostMarkKey = () => {
+  return "6682aa02-07a7-4661-893b-b4478bd575af";
+};
+
 export const getTipCount = () => {
   return 20;
 };

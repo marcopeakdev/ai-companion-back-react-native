@@ -15,5 +15,6 @@ router.post("/pin-goal", authMiddleware.ensureLogin, profileController.pinGoal);
 router.get("/goal-progress", authMiddleware.ensureLogin, profileController.getProgress);
 router.get("/tips", authMiddleware.ensureLogin, profileController.getTips);
 router.patch("/tips-date", authMiddleware.ensureLogin, profileController.updateTipsDate);
+router.patch("/personal", authMiddleware.ensureLogin, profileController.updatePersonal);
 
 export default router;
