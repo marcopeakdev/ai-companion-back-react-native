@@ -329,14 +329,12 @@ const sendCode = async (req: Request, res: Response) => {
   // Send an email:
   let client = new ServerClient(getPostMarkKey());
 
-  // client.sendEmail({
-  //   From: "neil@sunnycoastmedia.com.au",
-  //   To: "peakgenius226@gmail.com",
-  //   Subject: "Hello from Postmark",
-  //   HtmlBody: "<strong>Hello</strong> dear Postmark user.",
-  //   TextBody: code.toString(),
-  //   MessageStream: "outbound",
-  // });
+  client.sendEmail({
+    From: "neil@sunnycoastmedia.com.au",
+    To: user?.email.toString(),
+    Subject: "Verify Your Email Address with LifeSync",
+    HtmlBody: `<h1><strong> ${code.toString()}</strong></h1>`,
+  });
 
   res.status(200).send({ msg: "success!" });
 };
