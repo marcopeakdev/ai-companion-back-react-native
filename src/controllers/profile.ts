@@ -41,6 +41,12 @@ const setTipInterval = async (req: Request, res: Response) => {
 const setGoal = async (req: Request, res: Response) => {
   const { goalContent, userId } = req.body;
   // const messages = getMessagesPerUser(userId) ? getMessagesPerUser(userId) : [];
+  const creatingGoalRow = {
+    user_id: userId,
+    content: goalContent,
+    is_pin: false,
+  };
+  const createdGoal = await Goal.create(creatingGoalRow);
   const tipPrompt = `This is my goal. Give me ${getTipCount()} tips to achieve the goal based on my information. ${goalContent}`;
   const messages: ChatCompletionMessageParam[] = [
     {
@@ -48,24 +54,15 @@ const setGoal = async (req: Request, res: Response) => {
       content: tipPrompt,
     },
   ];
-  console.log("before tip")
   const promises = await Promise.all([
     chatBot(messages),
     Goal.find({ user_id: userId }),
   ]);
-  console.log("tips")
-  const goalRow = {
-    user_id: userId,
-    content: goalContent,
-    is_pin: false,
-    tips: promises[0],
-  };
-  
-  const goal = await Goal.create(goalRow);
-  console.log("after tips saving")
-  const goalId = goal._id;
+
+  await Goal.findOneAndUpdate({ _id: createdGoal._id }, { tips: promises[0] });
+  const goalId = createdGoal._id;
   //To ask questions of goal, point which goal.
-  if (promises[1].length === 0) {
+  if (promises[1].length === 1) {
     await User.findOneAndUpdate(
       { _id: userId },
       {
