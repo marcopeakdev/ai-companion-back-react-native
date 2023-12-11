@@ -69,7 +69,7 @@ const signup = async (req: Request, res: Response) => {
   const goalQuestions = await GoalQuestion.find({});
   const userInfo = {
     name,
-    email,
+    email: email.toLowerCase(),
     age,
     password,
     height,
@@ -125,8 +125,9 @@ const signup = async (req: Request, res: Response) => {
 const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   // Find the user
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: { $regex: new RegExp("^" + email.toLowerCase(), "i") } });
   if (!user) {
+    console.log("usernot fund");
     return res.status(404).json({ message: "User not found" });
   }
 
