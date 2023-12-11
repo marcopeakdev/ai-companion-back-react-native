@@ -22,30 +22,24 @@ const userSchema = new Schema<IUser>({
   },
   age: {
     type: Number,
-    required: true,
   },
   height: {
     type: Number,
-    required: true,
   },
   weight: {
     type: Number,
-    required: true,
   },
   gender: {
     // 0: female, 1: male
     type: Number,
-    required: true,
   },
   marial_status: {
     // 0: single, 1 : married:, 2: divorced
     type: Number,
-    required: true,
   },
   question_display_interval: {
     // 0: A day, 1 : A week:, 2: A month
     type: Number,
-    required: true,
     default: 0,
   },
   question_display_date: {
@@ -55,7 +49,6 @@ const userSchema = new Schema<IUser>({
   tip_display_interval: {
     // 0: A day, 1 : A week:, 2: A month
     type: Number,
-    required: true,
     default: 0,
   },
   tip_display_date: {
@@ -119,7 +112,6 @@ const userSchema = new Schema<IUser>({
     type: Number,
     default: 0
   },
-  
 });
 
 export default model<IUser>("User", userSchema);

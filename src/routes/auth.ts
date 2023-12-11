@@ -5,6 +5,7 @@ import authMiddleware from "../middlewares/auth";
 const router = express.Router();
 // auth
 router.post("/signup", authController.signup);
+router.patch("/signup", authController.updateSignup);
 router.post("/signin", authController.signin);
 router.post("/send-code", authController.sendCode);
 router.post("/confirm-code", authController.confirmCode);

@@ -22,10 +22,40 @@ import { chatBot } from "../chat";
 import { ChatCompletionMessageParam } from "openai/resources";
 
 const signup = async (req: Request, res: Response) => {
-  const {
+  const { name, email, password } = req.body;
+  const user = await User.findOne({
+    email: { $regex: new RegExp("^" + email.toLowerCase(), "i") },
+  });
+  if (user) {
+    return res.status(400).json({ message: "Email is already in use!" });
+  }
+  if (!name) {
+    return res.status(400).send({ message: "name field is required" });
+  }
+  if (!email || !email.includes("@")) {
+    return res.status(400).send({ message: "email field is invalid" });
+  }
+  if (!password) {
+    return res.status(400).send({ message: "password field is required" });
+  }
+  const userInfo = {
     name,
-    email,
+    email: email.toLowerCase(),
     password,
+  };
+
+  // Crypt the password
+  const salt = await bcrypt.genSalt(10);
+  userInfo.password = await bcrypt.hash(password, salt);
+  // Create the user
+  const newUser = await User.create(userInfo);
+
+  res.status(200).send({ message: "Email Register success!" });
+};
+
+const updateSignup = async (req: Request, res: Response) => {
+  const {
+    email,
     age,
     height,
     weight,
@@ -40,14 +70,8 @@ const signup = async (req: Request, res: Response) => {
   const user = await User.findOne({
     email: { $regex: new RegExp("^" + email.toLowerCase(), "i") },
   });
-  if (!name) {
-    return res.status(400).send({ message: "name field is required" });
-  }
   if (!email || !email.includes("@")) {
     return res.status(400).send({ message: "email field is invalid" });
-  }
-  if (!password) {
-    return res.status(400).send({ message: "password field is required" });
   }
   if (!age) {
     return res.status(400).send({ message: "age field is required" });
@@ -64,36 +88,33 @@ const signup = async (req: Request, res: Response) => {
   if (!marial_status && marial_status !== 0) {
     return res.status(400).send({ message: "marial_status field is required" });
   }
-  if (user) {
-    return res.status(400).json({ message: "Email is already in use!" });
+  if (!user) {
+    return res.status(400).json({ message: "Email is not exist!" });
   }
   const userQuestions = await UserQuestion.find({});
   const goalQuestions = await GoalQuestion.find({});
-  const userInfo = {
-    name,
-    email: email.toLowerCase(),
-    age,
-    password,
-    height,
-    weight,
-    gender,
-    marial_status,
-    user_question_id: userQuestions[0]?._id,
-    goal_question_id: goalQuestions[0]?._id,
-    health,
-    income,
-    family,
-    romantic,
-    happiness,
-  };
 
-  // Crypt the password
-  const salt = await bcrypt.genSalt(10);
-  userInfo.password = await bcrypt.hash(password, salt);
   // Create the user
-  const newUser = await User.create(userInfo);
+  const updatingUser = await User.findOneAndUpdate(
+    { email: { $regex: new RegExp("^" + email.toLowerCase(), "i") } },
+    {
+      age,
+      height,
+      weight,
+      gender,
+      marial_status,
+      user_question_id: userQuestions[0]?._id,
+      goal_question_id: goalQuestions[0]?._id,
+      health,
+      income,
+      family,
+      romantic,
+      happiness,
+    },
+    { new: true }
+  );
   //progress of the doamin is stored initially between 1-10;
-  const { id } = newUser;
+  const id = updatingUser?._id;
   const jwtsecret = getJwtSecret();
   if (!jwtsecret) {
     return;
@@ -104,22 +125,22 @@ const signup = async (req: Request, res: Response) => {
     message: "login success",
     token,
     user: {
-      name: newUser.name,
-      avatar: newUser.avatar,
-      age: newUser.age,
-      userEmail: newUser.email,
-      height: newUser.height,
-      weight: newUser.weight,
-      gender: newUser.gender,
-      marial_status: newUser.marial_status,
-      question_display_interval: newUser.question_display_interval,
-      tip_display_interval: newUser.tip_display_interval,
-      health: newUser.health,
-      income: newUser.income,
-      family: newUser.family,
-      romantic: newUser.romantic,
-      happiness: newUser.happiness,
-      pin_count: newUser.pin_count,
+      name: updatingUser?.name,
+      avatar: updatingUser?.avatar,
+      age: updatingUser?.age,
+      userEmail: updatingUser?.email,
+      height: updatingUser?.height,
+      weight: updatingUser?.weight,
+      gender: updatingUser?.gender,
+      marial_status: updatingUser?.marial_status,
+      question_display_interval: updatingUser?.question_display_interval,
+      tip_display_interval: updatingUser?.tip_display_interval,
+      health: updatingUser?.health,
+      income: updatingUser?.income,
+      family: updatingUser?.family,
+      romantic: updatingUser?.romantic,
+      happiness: updatingUser?.happiness,
+      pin_count: updatingUser?.pin_count,
     },
   });
 };
@@ -377,6 +398,7 @@ const resetPassword = async (req: Request, res: Response) => {
 
 export default {
   signup,
+  updateSignup,
   signin,
   getUser,
   logout,
