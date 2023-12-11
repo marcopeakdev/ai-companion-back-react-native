@@ -37,7 +37,9 @@ const signup = async (req: Request, res: Response) => {
     romantic,
     happiness,
   } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({
+    email: { $regex: new RegExp("^" + email.toLowerCase(), "i") },
+  });
   if (!name) {
     return res.status(400).send({ message: "name field is required" });
   }
@@ -63,7 +65,7 @@ const signup = async (req: Request, res: Response) => {
     return res.status(400).send({ message: "marial_status field is required" });
   }
   if (user) {
-    return res.status(400).json({ message: "User already exist!" });
+    return res.status(400).json({ message: "Email is already in use!" });
   }
   const userQuestions = await UserQuestion.find({});
   const goalQuestions = await GoalQuestion.find({});
@@ -125,9 +127,13 @@ const signup = async (req: Request, res: Response) => {
 const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   // Find the user
-  const user = await User.findOne({ email: { $regex: new RegExp("^" + email.toLowerCase(), "i") } });
+  if (!email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+  const user = await User.findOne({
+    email: { $regex: new RegExp("^" + email.toLowerCase(), "i") },
+  });
   if (!user) {
-    console.log("usernot fund");
     return res.status(404).json({ message: "User not found" });
   }
 
@@ -345,9 +351,9 @@ const confirmCode = async (req: Request, res: Response) => {
   const user = await User.findOne({ email: req.body.email });
   console.log("usercode", user?.code);
   if (user?.code === req.body.code * 1) {
-    res.status(200).send({ confirm: true });
+    res.status(200).send({ message: true });
   } else {
-    res.status(200).send({ confirm: false });
+    res.status(200).send({ message: false });
   }
 };
 
