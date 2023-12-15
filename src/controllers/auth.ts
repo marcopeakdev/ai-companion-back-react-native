@@ -279,9 +279,8 @@ const load = async (req: Request, res: Response) => {
   let startUserMessage = `Hello, Your role is my assistant. You need to remember my information in order to help me to achieve my goals. 
   My identification informatin is something like. 
   Email: ${email}, Name: ${name}, Age: ${age}, Height: ${height}, Weight: ${weight}, 
-  gender: ${genderArr[gender as number]}, marial_status: ${
-    marialStatusArr[marial_status as number]
-  }`;
+  gender: ${genderArr[gender as number]}, marial_status: ${marialStatusArr[marial_status as number]
+    }`;
 
   const userAnswer = await UserAnswer.find({ user_id: userId })
     .populate<{ user_question_id: IUserQuestion }>("user_question_id")
@@ -318,9 +317,8 @@ const load = async (req: Request, res: Response) => {
   goalAnswers.forEach((goal, index) => {
     startUserMessage += `${index + 1}. ${goal.content}\n`;
     goal.answers_per_goal.forEach((answer: any, answerIndex: number) => {
-      startUserMessage += `${answerIndex + 1}) ${
-        answer.goal_question[0].content
-      }\n ${answer.content}\n`;
+      startUserMessage += `${answerIndex + 1}) ${answer.goal_question[0].content
+        }\n ${answer.content}\n`;
     });
   });
   const statrtMessages: ChatCompletionMessageParam[] = [
@@ -353,8 +351,11 @@ const logout = (req: Request, res: Response) => {
 const sendCode = async (req: Request, res: Response) => {
   // Example: Generate a random number between 1000 and 9999
   const code = generateFourRandomNumber(1000, 9999);
-  const user = await User.findOneAndUpdate({ email: req.body.email }, { code });
-  // Send an email:
+  const user = await User.findOneAndUpdate({ email: { $regex: new RegExp("^" + req.body.email.toLowerCase(), "i") } }, { code });
+  if(!user){
+    return res.status(404).send({ message: "Email is not exist!" });
+  }
+  // Send an email to verify on postmark:
   let client = new ServerClient(getPostMarkKey());
 
   client.sendEmail({
@@ -369,19 +370,23 @@ const sendCode = async (req: Request, res: Response) => {
 
 const confirmCode = async (req: Request, res: Response) => {
   // Example: Generate a random number between 1000 and 9999
-  const user = await User.findOne({ email: req.body.email });
-  console.log("usercode", user?.code);
+  const user = await User.findOne({ email: { $regex: new RegExp("^" + req.body.email.toLowerCase(), "i") } });
+  console.log("usercode", user?.code, "sendingcode===>", req.body.code);
+  if(!user?.code) {
+    return res.status(404).send({ message: "Send again!" });
+  }
   if (user?.code === req.body.code * 1) {
-    res.status(200).send({ message: true });
+    console.log("true")
+    res.status(200).send({ confirm: true });
   } else {
-    res.status(200).send({ message: false });
+    res.status(200).send({ confirm: false });
   }
 };
 
 const formatCode = async (req: Request, res: Response) => {
   console.log("email====>", req.body.email);
   // Example: Generate a random number between 1000 and 9999
-  await User.updateOne({ email: req.body.email }, { $unset: { code: 1 } });
+  await User.updateOne({ email: { $regex: new RegExp("^" + req.body.email.toLowerCase(), "i") } }, { $unset: { code: 1 } });
   res.status(200).send({ msg: "format success!" });
 };
 
@@ -390,7 +395,7 @@ const resetPassword = async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(password, salt);
   await User.findOneAndUpdate(
-    { email: req.body.email },
+    { email: { $regex: new RegExp("^" + req.body.email.toLowerCase(), "i") } },
     { password: hashPassword, $unset: { code: 1 } }
   );
   res.status(200).send({ msg: "reset pwd success!" });
