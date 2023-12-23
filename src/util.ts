@@ -39,7 +39,8 @@ export const selectOpenAiChatModel = () => {
 };
 
 export const getMongoUri = () => {
-  return "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority";
+  return "mongodb+srv://peakgenius226:AlwaysSuccess226!@lifesync.qjly3xs.mongodb.net/ai_companion?retryWrites=true&w=majority";
+  // return "mongodb+srv://peakgenius226:AlwaysSuccess226!@ai-companion.4vbg1k2.mongodb.net/ai_companion?retryWrites=true&w=majority";
 };
 
 export const storeMessagesPerUser = (
